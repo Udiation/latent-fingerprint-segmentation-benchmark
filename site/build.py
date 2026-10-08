@@ -14,11 +14,17 @@ SITE = ROOT / "site"
 RESULTS = ROOT / "results"
 SYNTHETIC = ROOT / "examples" / "synthetic"
 APPROVED_RESULT_COLUMNS = {
-    "table", "year", "method", "approach", "family", "training_data", "comment",
-    "status", "seeds_completed", "dice", "jaccard", "mdr", "fdr", "accuracy",
-    "params_m", "ms_per_img", "device", "ci_lower", "ci_upper",
+    "table", "view", "group", "year", "method", "approach", "family",
+    "training_data", "comment", "status", "seeds_completed", "n_images",
+    "n_subjects", "accuracy", "error_rate", "dice", "jaccard", "miou", "mdr",
+    "fdr", "mc", "hr", "par", "ohf", "params_m", "ms_per_img", "device",
+    "ci_lower", "ci_upper",
 }
-METRICS = {"dice", "jaccard", "mdr", "fdr", "accuracy", "ci_lower", "ci_upper"}
+METRICS = {
+    "accuracy", "error_rate", "dice", "jaccard", "miou", "mdr", "fdr",
+    "mc", "hr", "ohf", "ci_lower", "ci_upper",
+}
+NONNEGATIVE = {"par", "params_m", "ms_per_img", "n_images", "n_subjects"}
 
 
 def read_csv(path: Path, approved: set[str]) -> list[dict[str, str]]:
@@ -33,6 +39,11 @@ def read_csv(path: Path, approved: set[str]) -> list[dict[str, str]]:
                 value = float(row[key])
                 if not 0 <= value <= 1:
                     raise ValueError(f"{path.name} {key} outside [0,1]")
+        for key in NONNEGATIVE:
+            if key in row and row[key] != "":
+                value = float(row[key])
+                if value < 0:
+                    raise ValueError(f"{path.name} {key} is negative")
     return rows
 
 
@@ -95,7 +106,7 @@ def main() -> None:
 <section id="pipeline" class="section"><div class="wrap"><h2>Pipeline</h2><p class="section-intro">All methods share the same study units, split, physical resolution, validation boundary and evaluator.</p><img class="pipeline" src="assets/pipeline.svg" alt="Benchmark pipeline from licensed data through examiner GT, subject split, methods, evaluation and statistics"></div></section>
 <section class="section"><div class="wrap"><h2>Datasets and ground truth</h2><div class="grid"><article class="card dataset"><h3>SD302-Latent</h3><p>Examiner ROI polygons define Table A; complete ridge-quality maps define Table A-prime.</p><p class="meta">136 / 24 / 40 subjects · train / validation / test</p></article><article class="card dataset"><h3>SD302-Exemplar</h3><p>Expert minutiae form a lower-bound convex hull. B1 reports MC, HR, PAR and OHF—never Dice against the hull.</p></article><article class="card dataset"><h3>Exclusions</h3><p>68 incomplete quality annotations affect A-prime only; two NONPRINT annotations are excluded from test scoring.</p></article></div></div></section>
 <section id="methods" class="section"><div class="wrap"><h2>Methods</h2><p class="section-intro">Sixteen explicit rows represent the twelve Fig. 2 entries. The dagger marks the declared two-dimensional substitute.</p><div class="grid">{method_cards(results)}</div></div></section>
-<section id="results" class="section"><div class="wrap"><h2>Interactive results</h2><p class="section-intro">The table and plots are generated from the tracked aggregate CSV. Empty cells are deliberately rendered as pending.</p><div class="tabs" role="tablist" aria-label="Result tables">{tabs}</div><div id="result-panel" role="tabpanel" aria-live="polite"><div class="controls"><label>Sort metric <select id="metric"><option value="dice">Dice</option><option value="jaccard">Jaccard</option><option value="mdr">MDR</option><option value="fdr">FDR</option><option value="accuracy">Accuracy</option><option value="ms_per_img">ms/img</option></select></label><span>Confidence intervals appear after aggregate finalisation.</span></div><div class="table-scroll"><table><thead><tr><th>Approach</th><th>Family</th><th>Status</th><th>Metric</th><th>Seeds</th><th>Params M</th><th>ms/img</th><th>Device</th></tr></thead><tbody id="result-body"></tbody></table></div><h3>Dice–runtime trade-off</h3><div id="pareto" class="chart"></div><h3>Corrected significance</h3><p class="notice">Holm-corrected paired comparisons remain pending the final aggregate bundle.</p></div></div></section>
+<section id="results" class="section"><div class="wrap"><h2>Interactive results</h2><p class="section-intro">The table and plots are generated from the tracked aggregate CSV. Empty cells are deliberately rendered as pending.</p><div class="tabs" role="tablist" aria-label="Result tables">{tabs}</div><div id="result-panel" role="tabpanel" aria-live="polite"><div class="controls"><label>Sort metric <select id="metric"><option value="dice">Dice</option><option value="jaccard">Jaccard</option><option value="mdr">MDR</option><option value="fdr">FDR</option><option value="accuracy">Accuracy</option><option value="mc">MC</option><option value="hr">HR</option><option value="par">PAR</option><option value="ohf">OHF</option><option value="ms_per_img">ms/img</option></select></label><span>Confidence intervals appear after aggregate finalisation.</span></div><div class="table-scroll"><table><thead><tr><th>Approach</th><th>Family</th><th>Status</th><th>Metric</th><th>Seeds</th><th>Params M</th><th>ms/img</th><th>Device</th></tr></thead><tbody id="result-body"></tbody></table></div><h3>Dice–runtime trade-off</h3><div id="pareto" class="chart"></div><h3>Corrected significance</h3><p class="notice">Holm-corrected paired comparisons remain pending the final aggregate bundle.</p></div></div></section>
 <section class="section"><div class="wrap"><h2>Findings</h2><ul><li>Pending: deep-versus-classical Dice difference and subject-cluster CI.</li><li>Pending: examiner-value effect.</li><li>Pending: runtime–Dice Pareto frontier.</li><li>Pending: exemplar cross-domain hull-recall change.</li></ul></div></section>
 <section id="reproduce" class="section"><div class="wrap"><h2>Reproducibility</h2><p class="section-intro">No script downloads biometric data. Supply locally authorised paths and frozen receipts.</p><pre>python -m pip install -r requirements.txt
 python scripts/smoke_synthetic.py --work-dir .smoke

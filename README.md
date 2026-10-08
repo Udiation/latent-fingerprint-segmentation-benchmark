@@ -109,6 +109,20 @@ bash scripts/reproduce_table_D.sh --config local/benchmark.env
 The shell entry points fail closed until the required private paths and frozen
 selection receipts are supplied. They never download biometric data.
 
+Final aggregate outputs enter the public tree through one fail-closed command.
+Run its dry mode first; it validates the hash-bound aggregate-only bundle and
+rebuilds the results documentation and website in isolation:
+
+```bash
+python scripts/update_from_aggregate.py \
+  --bundle /path/to/public-aggregate-bundle \
+  --dry-run \
+  --report /path/to/dry-run-report.json
+```
+
+The accepted schema and apply command are documented in
+[`results/README.md`](results/README.md).
+
 ## Protocol summary
 
 - Frozen 136/24/40-subject train/validation/test assignment.
@@ -149,4 +163,3 @@ the FingerNet authors, and the Hugging Face SegFormer implementation.
 
 Contact: open a GitHub issue for code and reproducibility questions. Requests
 for weights must be reviewed separately and remain subject to dataset terms.
-

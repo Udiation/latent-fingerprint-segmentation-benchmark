@@ -22,5 +22,5 @@ jobs:
       - run: python site/build.py
       - run: python scripts/check_site_numbers.py
       - run: python scripts/check_accessibility.py
-      - run: pytest -q tests/test_public_release.py tests/test_metrics_public.py
+      - run: pytest -q tests/test_public_release.py tests/test_metrics_public.py tests/test_update_from_aggregate.py
       - run: python scripts/scan_release.py

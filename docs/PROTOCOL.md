@@ -68,3 +68,13 @@ pixel-overlap metric is reported against it.
   validation or test target image;
 - all test masks remain sealed until the validation-selected model is frozen.
 
+## Public aggregate publication boundary
+
+The public repository never imports evaluator-level or per-image artifacts.
+Stage 4 must first emit a separate public aggregate bundle containing only the
+three exact CSV schemas documented in `results/README.md`, bound by a SHA-256
+manifest. `scripts/update_from_aggregate.py` rejects any other file or column,
+screens every aggregate cell for private identifiers and infrastructure/data
+references, and rebuilds `docs/RESULTS.md` and the website from those same CSV
+bytes. A dry run stages and number-checks all outputs without replacing tracked
+files; apply mode installs only the already-validated staged output set.

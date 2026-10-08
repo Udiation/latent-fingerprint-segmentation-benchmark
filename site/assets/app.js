@@ -18,7 +18,9 @@
   const fmt = (value, metric) => {
     if (value === null || value === "" || Number.isNaN(Number(value))) return "pending";
     const v = Number(value);
-    return ["params_m", "ms_per_img"].includes(metric) ? v.toFixed(2) : (v * 100).toFixed(2);
+    if (["params_m", "ms_per_img"].includes(metric)) return v.toFixed(2);
+    if (metric === "par") return v.toFixed(3);
+    return (v * 100).toFixed(2);
   };
 
   function renderTable() {
@@ -34,11 +36,12 @@
       const av = Number(a[activeMetric]); const bv = Number(b[activeMetric]);
       if (Number.isNaN(av) && Number.isNaN(bv)) return a.approach.localeCompare(b.approach);
       if (Number.isNaN(av)) return 1; if (Number.isNaN(bv)) return -1;
-      return ["mdr", "fdr", "ms_per_img"].includes(activeMetric) ? av - bv : bv - av;
+      return ["mdr", "fdr", "ohf", "ms_per_img"].includes(activeMetric) ? av - bv : bv - av;
     });
     for (const row of rows) {
       const tr = document.createElement("tr");
-      const cells = [row.approach, row.family, row.status, fmt(row[activeMetric], activeMetric), row.seeds_completed || "—", fmt(row.params_m, "params_m"), fmt(row.ms_per_img, "ms_per_img"), row.device || "—"];
+      const label = row.group && row.group !== "overall" ? `${row.approach} — ${row.group}` : row.approach;
+      const cells = [label, row.family, row.status, fmt(row[activeMetric], activeMetric), row.seeds_completed || "—", fmt(row.params_m, "params_m"), fmt(row.ms_per_img, "ms_per_img"), row.device || "—"];
       cells.forEach((cell, index) => {
         const td = document.createElement("td"); td.textContent = cell;
         if (index >= 3) td.className = "numeric";
@@ -51,7 +54,13 @@
 
   document.querySelectorAll(".tab").forEach(button => button.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach(item => item.setAttribute("aria-selected", "false"));
-    button.setAttribute("aria-selected", "true"); activeTable = button.dataset.table; renderTable(); renderPareto();
+    button.setAttribute("aria-selected", "true"); activeTable = button.dataset.table;
+    if (activeTable === "B1" && !["mc", "hr", "par", "ohf", "ms_per_img"].includes(activeMetric)) {
+      activeMetric = "hr"; document.querySelector("#metric").value = activeMetric;
+    } else if (activeTable !== "B1" && ["mc", "hr", "par", "ohf"].includes(activeMetric)) {
+      activeMetric = "dice"; document.querySelector("#metric").value = activeMetric;
+    }
+    renderTable(); renderPareto();
   }));
   document.querySelector("#metric")?.addEventListener("change", event => { activeMetric = event.target.value; renderTable(); });
 
@@ -89,4 +98,3 @@
   });
   renderTable(); renderPareto();
 })();
-
