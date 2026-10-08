@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 1120 240">
+  <title id="title">Segmentation benchmark pipeline</title>
+  <desc id="desc">Licensed data flows through examiner ground truth, a subject-disjoint split, common method training, shared evaluation, and subject-aware statistics.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1">
+      <stop stop-color="#ecfeff"/><stop offset="1" stop-color="#eef2ff"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#64748b"/>
+    </marker>
+    <style>
+      .box{fill:url(#bg);stroke:#94a3b8;stroke-width:1.5}.t{font:600 15px system-ui,sans-serif;fill:#0f172a}.s{font:12px system-ui,sans-serif;fill:#475569}.a{stroke:#64748b;stroke-width:2;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="box" x="16" y="58" rx="18" width="180" height="124"/>
+  <text class="t" x="106" y="93" text-anchor="middle">Licensed data</text>
+  <text class="s" x="106" y="119" text-anchor="middle">latent + exemplar</text>
+  <text class="s" x="106" y="140" text-anchor="middle">images stay local</text>
+  <line class="a" x1="196" y1="120" x2="228" y2="120"/>
+  <rect class="box" x="230" y="58" rx="18" width="180" height="124"/>
+  <text class="t" x="320" y="93" text-anchor="middle">Examiner GT</text>
+  <text class="s" x="320" y="119" text-anchor="middle">ROI · usable ridge</text>
+  <text class="s" x="320" y="140" text-anchor="middle">minutiae hull</text>
+  <line class="a" x1="410" y1="120" x2="442" y2="120"/>
+  <rect class="box" x="444" y="58" rx="18" width="180" height="124"/>
+  <text class="t" x="534" y="93" text-anchor="middle">Frozen split</text>
+  <text class="s" x="534" y="119" text-anchor="middle">subject-disjoint</text>
+  <text class="s" x="534" y="140" text-anchor="middle">validation-only selection</text>
+  <line class="a" x1="624" y1="120" x2="656" y2="120"/>
+  <rect class="box" x="658" y="58" rx="18" width="180" height="124"/>
+  <text class="t" x="748" y="93" text-anchor="middle">16 rows</text>
+  <text class="s" x="748" y="119" text-anchor="middle">classical · patch</text>
+  <text class="s" x="748" y="140" text-anchor="middle">deep · released</text>
+  <line class="a" x1="838" y1="120" x2="870" y2="120"/>
+  <rect class="box" x="872" y="58" rx="18" width="232" height="124"/>
+  <text class="t" x="988" y="93" text-anchor="middle">One evaluator</text>
+  <text class="s" x="988" y="119" text-anchor="middle">paired metrics + timing</text>
+  <text class="s" x="988" y="140" text-anchor="middle">cluster CIs · corrected tests</text>
+</svg>
+

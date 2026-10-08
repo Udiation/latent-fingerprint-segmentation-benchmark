@@ -1,0 +1,49 @@
+schema_version: 1
+method: unet
+display_name: U-Net
+task: pixel
+seed: 0
+data:
+  target_ppi: 500
+  subset: finger_latent
+  mask_column: mask_path
+  crop_size: 512
+  normalization: train_only
+  exclude_examiner_values_from_test: [NONPRINT]
+augmentation:
+  horizontal_flip_probability: 0.5
+  max_rotation_degrees: 15.0
+  scale_min: 0.9
+  scale_max: 1.1
+  brightness: 0.2
+  contrast: 0.2
+  gaussian_noise_std: 0.02
+model:
+  in_channels: 1
+  base_channels: 32
+  levels: 4
+training:
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  epochs: 100
+  patience: 15
+  batch_size: 4
+  gradient_accumulation: 1
+  num_workers: 8
+  pin_memory: true
+  persistent_workers: true
+  prefetch_factor: 4
+  bce_weight: 1.0
+  dice_weight: 1.0
+  threshold_candidates: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+  scheduler: cosine
+  min_learning_rate: 0.0
+inference:
+  pad_multiple: 32
+  tile_size: 512
+  tile_overlap: 64
+  batch_size: 1
+runtime:
+  device: auto
+  memory_fraction: 0.3
+  deterministic: true

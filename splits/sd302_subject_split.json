@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "status": "pending_public_export_after_seed_zero_gate",
+  "seed": 20260908,
+  "expected_subject_counts": {
+    "train": 136,
+    "val": 24,
+    "test": 40
+  },
+  "splits": {}
+}
+

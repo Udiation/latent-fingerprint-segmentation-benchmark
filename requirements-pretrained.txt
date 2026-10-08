@@ -1,0 +1,4 @@
+# Pretrained/classical external baselines. Install after requirements-deep.txt.
+keras==3.15.1
+h5py==3.16.0
+pyfing==0.6

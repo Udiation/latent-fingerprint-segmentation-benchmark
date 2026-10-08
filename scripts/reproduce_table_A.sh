@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+exec python scripts/reproduce.py --table A "$@"
+

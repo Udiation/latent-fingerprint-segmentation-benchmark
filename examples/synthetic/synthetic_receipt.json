@@ -1,0 +1,155 @@
+{
+  "assets": [
+    {
+      "mime_type": "image/png",
+      "path": "images/syn_finger_latent_000_0.png",
+      "role": "example_image",
+      "sha256": "6232fdba75a11eec6218ab9f48db5d64532133f5d4f3ab6e3de8a995bc77e1df"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "images/syn_finger_latent_001_0.png",
+      "role": "example_image",
+      "sha256": "1040eb6edde028c5c3dd6213ac72681d722d714e135e130c4eb77562cc4e037e"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "images/syn_finger_latent_002_0.png",
+      "role": "example_image",
+      "sha256": "f64a1179ebb77a3ee879d983298e8b540eac93a7067f45799b824528068d73c2"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "images/syn_finger_latent_003_0.png",
+      "role": "example_image",
+      "sha256": "1dd8254fd37a409f9d94f8ed42662da53a68b03fdfd703d7b385dd4abb3376c9"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "images/syn_finger_livescan_000_0.png",
+      "role": "example_image",
+      "sha256": "f87a1ff2a83657640446919665e9a594bd44df939bd36133bc7c6cf0f77fbd02"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "images/syn_finger_livescan_001_0.png",
+      "role": "example_image",
+      "sha256": "8db1b06512f61e531a6a3f278de351ac014451b8f0bc85dd7f6156d00fb91dc1"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "images/syn_finger_livescan_002_0.png",
+      "role": "example_image",
+      "sha256": "e3e4d78040445d30e78d65a828b7f693f57205406649da5e6b4c01d46b1d13d5"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "images/syn_finger_livescan_003_0.png",
+      "role": "example_image",
+      "sha256": "52f7fb818571636fcc2066d2f4272008569d751ae54f9a10295dfa461ae2afb4"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "images/syn_palm_000_0.png",
+      "role": "example_image",
+      "sha256": "cb5747915ca318c05c1b8440ba0b8659628c1e76f5b6a2b65bf468668aca6b43"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "images/syn_palm_001_0.png",
+      "role": "example_image",
+      "sha256": "3c4eeabe24436fb54623137abc3c79bf57ae1b3189b913394b0d1bf61bbffc25"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "images/syn_palm_002_0.png",
+      "role": "example_image",
+      "sha256": "a3a9b704f8a805e6d27b5621c662eeaaf5aa8cf794bacdd10a71f3a6ad767870"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "images/syn_palm_003_0.png",
+      "role": "example_image",
+      "sha256": "fd8524408a4878e708095ccd2ecf7c5d47b5adbb43334ea4d9947bdaf7f9ab8e"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "masks/syn_finger_latent_000_0.png",
+      "role": "ground_truth_mask",
+      "sha256": "a1a89a30c60f69863492547e3ff21e3de6e594977917f94f080378ecfdb14683"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "masks/syn_finger_latent_001_0.png",
+      "role": "ground_truth_mask",
+      "sha256": "ff66c867411388908399536abae17d22be15f06aecc50302894924b4077d254a"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "masks/syn_finger_latent_002_0.png",
+      "role": "ground_truth_mask",
+      "sha256": "0c4e4ed47e213b8a31206818c93ae8baf59c41182980ebe296e60b79862cc7fe"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "masks/syn_finger_latent_003_0.png",
+      "role": "ground_truth_mask",
+      "sha256": "5329f16a9d06daa39cf272fe60dfa1a8100160372afc98fb8c350e3ee1d5353f"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "masks/syn_finger_livescan_000_0.png",
+      "role": "ground_truth_mask",
+      "sha256": "9d3ced82eb733b724a1e3529d52e6e228becdaf8564e17d2616a62c816168267"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "masks/syn_finger_livescan_001_0.png",
+      "role": "ground_truth_mask",
+      "sha256": "2f881dc559a78af579688ade810a9247be82f27c4e27398cb2037892869cb5ed"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "masks/syn_finger_livescan_002_0.png",
+      "role": "ground_truth_mask",
+      "sha256": "a620e576b6a16aebbfafe3d65a65668ffb1ef301fab03ef2aab57b27a498040b"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "masks/syn_finger_livescan_003_0.png",
+      "role": "ground_truth_mask",
+      "sha256": "2c4b1a22d45a48013c29905e9ea13596ae2203d2f3758b93377b8bfb6e43edb0"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "masks/syn_palm_000_0.png",
+      "role": "ground_truth_mask",
+      "sha256": "913d89523bcd930fd1e2687480af7c634b0dc0168d04b83ce045a5563dfc2ea6"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "masks/syn_palm_001_0.png",
+      "role": "ground_truth_mask",
+      "sha256": "4c238b9f39e470ee740b1c865f2e929d02432f718058e83574cd602714672482"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "masks/syn_palm_002_0.png",
+      "role": "ground_truth_mask",
+      "sha256": "ff592fe3d064a6014bec24fd7e220e49984d682ce7f3a2fc2111ae2c4ebe2a7a"
+    },
+    {
+      "mime_type": "image/png",
+      "path": "masks/syn_palm_003_0.png",
+      "role": "ground_truth_mask",
+      "sha256": "72ea15932cbcb21067f91ccee0dc8436960637345d512f575366114146856094"
+    }
+  ],
+  "generator_sha256": "3c4800fa8748a9c65b49eeb014bfe6d5b9257e43fc6988c777936bbb123ae397",
+  "kind": "segbench_synthetic_dataset",
+  "per_subject": 1,
+  "provenance": "generated_by_make_synthetic_demo",
+  "schema_version": 1,
+  "seed": 7,
+  "subjects": 4
+}

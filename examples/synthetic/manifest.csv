@@ -1,0 +1,13 @@
+image_id,image_path,mask_path,subject_id,subset,ppi
+syn_finger_latent_000_0,examples/synthetic/images/syn_finger_latent_000_0.png,examples/synthetic/masks/syn_finger_latent_000_0.png,S000,finger_latent,1000
+syn_finger_livescan_000_0,examples/synthetic/images/syn_finger_livescan_000_0.png,examples/synthetic/masks/syn_finger_livescan_000_0.png,S000,finger_livescan,500
+syn_palm_000_0,examples/synthetic/images/syn_palm_000_0.png,examples/synthetic/masks/syn_palm_000_0.png,S000,palm,500
+syn_finger_latent_001_0,examples/synthetic/images/syn_finger_latent_001_0.png,examples/synthetic/masks/syn_finger_latent_001_0.png,S001,finger_latent,1000
+syn_finger_livescan_001_0,examples/synthetic/images/syn_finger_livescan_001_0.png,examples/synthetic/masks/syn_finger_livescan_001_0.png,S001,finger_livescan,500
+syn_palm_001_0,examples/synthetic/images/syn_palm_001_0.png,examples/synthetic/masks/syn_palm_001_0.png,S001,palm,500
+syn_finger_latent_002_0,examples/synthetic/images/syn_finger_latent_002_0.png,examples/synthetic/masks/syn_finger_latent_002_0.png,S002,finger_latent,1000
+syn_finger_livescan_002_0,examples/synthetic/images/syn_finger_livescan_002_0.png,examples/synthetic/masks/syn_finger_livescan_002_0.png,S002,finger_livescan,500
+syn_palm_002_0,examples/synthetic/images/syn_palm_002_0.png,examples/synthetic/masks/syn_palm_002_0.png,S002,palm,500
+syn_finger_latent_003_0,examples/synthetic/images/syn_finger_latent_003_0.png,examples/synthetic/masks/syn_finger_latent_003_0.png,S003,finger_latent,1000
+syn_finger_livescan_003_0,examples/synthetic/images/syn_finger_livescan_003_0.png,examples/synthetic/masks/syn_finger_livescan_003_0.png,S003,finger_livescan,500
+syn_palm_003_0,examples/synthetic/images/syn_palm_003_0.png,examples/synthetic/masks/syn_palm_003_0.png,S003,palm,500

@@ -1,0 +1,21 @@
+method: fingernet
+display_name: FingerNet (Tang et al. 2017)
+target_ppi: 500.0
+released_weights:
+  sha256: 1c2c9ec33472d59e31bdb480bdee57aa9e109dc5b91bf01c0466154ee45c2ccd
+  keras_version: 2.0.2
+  backend: tensorflow
+source:
+  paper_repository: https://github.com/felixTY/FingerNet
+  archival_repository: https://github.com/592692070/FingerNet
+  commit: aee18f3a77e2f25e7e0c072e3beb89a2878f3290
+inference:
+  batch_size: 1
+  coarse_stride: 8
+  threshold: 0.5
+  dimension_policy: floor_to_stride_then_background_fill
+  postprocess:
+    operation: opening
+    kernel: [5, 5]
+  warmup_images: 10
+  cuda_memory_fraction: 0.3

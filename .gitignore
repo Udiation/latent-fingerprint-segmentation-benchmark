@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+.smoke/
+dist/
+build/
+*.egg-info/
+
+# Licensed biometric data and trained artifacts never belong in this repository.
+data/
+private_data/
+checkpoints/
+weights/
+*.pt
+*.pth
+*.h5
+*.joblib
+*.npy
+
+# Local build receipts that may contain machine-local paths.
+site/build_receipt.local.json
