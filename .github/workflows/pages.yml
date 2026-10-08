@@ -27,6 +27,8 @@ jobs:
           python-version: "3.12"
       - run: python site/build.py
       - run: python scripts/check_site_numbers.py
+      - run: python scripts/check_accessibility.py
+      - run: python scripts/check_release_requirements.py
       - run: python scripts/scan_release.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
@@ -34,4 +36,3 @@ jobs:
           path: site
       - id: deployment
         uses: actions/deploy-pages@v4
-

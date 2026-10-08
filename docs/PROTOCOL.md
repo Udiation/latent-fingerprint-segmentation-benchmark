@@ -76,5 +76,7 @@ three exact CSV schemas documented in `results/README.md`, bound by a SHA-256
 manifest. `scripts/update_from_aggregate.py` rejects any other file or column,
 screens every aggregate cell for private identifiers and infrastructure/data
 references, and rebuilds `docs/RESULTS.md` and the website from those same CSV
-bytes. A dry run stages and number-checks all outputs without replacing tracked
-files; apply mode installs only the already-validated staged output set.
+bytes. The README headline table is replaced only inside explicit generated
+markers from the same rows. A dry run stages and number-checks all outputs
+without replacing tracked files; apply mode installs only the already-validated
+staged output set.

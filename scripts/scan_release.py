@@ -14,7 +14,10 @@ ROOT = Path(__file__).resolve().parents[1]
 MAX_BYTES = 10 * 1024 * 1024
 BANNED_ARTIFACT_SUFFIXES = {".pt", ".pth", ".joblib", ".npy", ".h5"}
 RASTER_SUFFIXES = {".png", ".jpg", ".jpeg", ".bmp", ".webp"}
-TEXT_SUFFIXES = {".py", ".md", ".txt", ".yaml", ".yml", ".json", ".csv", ".toml", ".cff", ".html", ".css", ".js", ".svg", ".sh"}
+TEXT_SUFFIXES = {
+    ".py", ".md", ".txt", ".yaml", ".yml", ".json", ".csv", ".toml",
+    ".cff", ".html", ".css", ".js", ".svg", ".sh", ".ipynb",
+}
 
 
 def patterns() -> list[tuple[str, re.Pattern[str]]]:
@@ -47,7 +50,12 @@ def approved_synthetic_hashes() -> set[str]:
     if not receipt.is_file():
         return set()
     data = json.loads(receipt.read_text(encoding="utf-8"))
-    return {str(item.get("sha256")) for item in data.get("assets", []) if item.get("role") in {"example_image", "ground_truth_mask"}}
+    approved_roles = {"example_image", "ground_truth_mask", "method_prediction"}
+    return {
+        str(item.get("sha256"))
+        for item in data.get("assets", [])
+        if item.get("role") in approved_roles
+    }
 
 
 def scan_history(errors: list[str]) -> None:

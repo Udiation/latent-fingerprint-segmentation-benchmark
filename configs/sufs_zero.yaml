@@ -1,0 +1,18 @@
+schema_version: 1
+method: sufs_zero
+display_name: SUFS (zero-shot)
+task: pixel
+data:
+  target_ppi: 500
+  normalization: released_model
+model:
+  implementation: pyfing_sufs_0.6
+  training_regime: external_by_original_authors
+  weights_file: SUFS.weights.h5
+  weights_sha256: a524c1e8707a870569aa3ad588f8a02264dc0eeb0acf3db1d1d425cc30751f0f
+selection:
+  split: val
+  threshold_candidates: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+  chosen_threshold: pending
+inference:
+  batch_size: 1

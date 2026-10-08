@@ -18,21 +18,23 @@
     "exact manifest-bound CSV inventory",
     "aggregate-only schemas with no per-image columns",
     "no biometric media, trained artifacts, private paths, hosts, IPs, or cloud-drive strings",
+    "README marker table rendered from aggregate rows",
     "documentation rendered from aggregate rows",
     "site payload and source hashes match aggregate rows byte-for-byte"
   ],
-  "importer_sha256": "b48337a10f58e9363db191d46c879e966053f9090330c63e9a6307bfacad6809",
+  "importer_sha256": "a88e47cf81da6bd5e0a5d4c8c54979b2e1764a3f5ac9b109f83f60842cf69a47",
   "kind": "public_aggregate_update_report",
   "mode": "dry-run",
   "mutations_applied": false,
   "output_sha256": {
-    "docs/RESULTS.md": "27accb4df244b5a1c462092f0bb01c841ae48a31d970816e23ad17df69d34f44",
+    "README.md": "dd736d4ace67538a9b636e247fc6973551ed054470eb1f25e38c915f284bc2cc",
+    "docs/RESULTS.md": "327f77a867220c2fbc617460fa7dedb48883afff572019468771584b78140881",
     "results/public_results.csv": "35820be4e3e940918c18046cf1a894b6eda9c631b470a5c636e96d9762b4da3d",
     "results/statistics.csv": "6d978d65665669028638f9f21f6e22990fc1ba87cee7bf2559a98d874f8f1574",
     "results/table_status.csv": "2c853f6146b16eb55c904752adb0d294018b4df69fd061e30e6ef3e392987567",
     "site/assets/results/public_results.csv": "35820be4e3e940918c18046cf1a894b6eda9c631b470a5c636e96d9762b4da3d",
-    "site/build_manifest.json": "8f6d27811dd0dfa71601fdd0e3ee2fdf87d8dd8b7f3c040367ffbee19a9c3105",
-    "site/index.html": "58a71f261265a43ec3d6fceae511ab3ec3adb0173b0374b5dc4bba45a8155208"
+    "site/build_manifest.json": "ce227a7b82132da22b677db40ab447c942c31f266cda8b803b0fce183ecc68d2",
+    "site/index.html": "c2ba2ef34c9cffb7da6afcdfec5f738d894459afe1fecb9f801c431f4d5e027d"
   },
   "schema_version": 1,
   "status": "PASS"

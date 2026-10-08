@@ -9,10 +9,14 @@ source:
   paper_repository: https://github.com/felixTY/FingerNet
   archival_repository: https://github.com/592692070/FingerNet
   commit: aee18f3a77e2f25e7e0c072e3beb89a2878f3290
+selection:
+  split: val
+  threshold_candidates: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+  chosen_threshold: pending
 inference:
   batch_size: 1
   coarse_stride: 8
-  threshold: 0.5
+  released_threshold: 0.5
   dimension_policy: floor_to_stride_then_background_fill
   postprocess:
     operation: opening

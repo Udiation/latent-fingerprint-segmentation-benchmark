@@ -33,8 +33,8 @@ The source directory must contain exactly:
 The importer rejects extra files, symlinks, changed hashes, unexpected or
 per-image columns, biometric-style identifiers, embedded media, model/data
 artifacts, private absolute paths, hosts, IP addresses, and cloud-drive
-references. It stages and number-checks `docs/RESULTS.md` and the project site
-before applying any output.
+references. It stages and number-checks the marker-bound README headline table,
+`docs/RESULTS.md`, and the project site before applying any output.
 
 Always review a non-mutating receipt first:
 

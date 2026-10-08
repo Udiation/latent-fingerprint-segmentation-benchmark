@@ -1,0 +1,19 @@
+schema_version: 1
+method: welm
+display_name: Weighted ELM
+task: block
+data:
+  target_ppi: 500
+  block_size: 16
+  context_size: 32
+  normalization: train_only
+selection:
+  split: val
+  metric: balanced_block_accuracy
+  hidden_units: [500, 1000]
+  C: [1.0, 100.0, 10000.0, 1000000.0]
+  chosen: pending
+model:
+  weighting: W1_inverse_class_frequency
+inference:
+  min_component_blocks: 4

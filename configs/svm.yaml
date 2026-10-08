@@ -1,0 +1,21 @@
+schema_version: 1
+method: svm
+display_name: SVM (Nyström RBF)
+task: block
+data:
+  target_ppi: 500
+  block_size: 16
+  context_size: 32
+  normalization: train_only
+selection:
+  split: val
+  metric: balanced_block_accuracy
+  gamma: [0.05, 0.2]
+  C: [0.1, 1.0, 10.0]
+  chosen: pending
+model:
+  kernel_approximation: nystroem_rbf
+  n_components: 1000
+  class_weight: balanced
+inference:
+  min_component_blocks: 4

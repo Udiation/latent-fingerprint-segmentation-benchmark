@@ -35,6 +35,8 @@ EXPECTED_FILES = ("public_results.csv", "statistics.csv", "table_status.csv")
 MANIFEST_NAME = "aggregate_manifest.json"
 MAX_INPUT_BYTES = 5 * 1024 * 1024
 LOWER_HEX = set("0123456789abcdef")
+README_RESULTS_START = "<!-- BEGIN GENERATED HEADLINE RESULTS -->"
+README_RESULTS_END = "<!-- END GENERATED HEADLINE RESULTS -->"
 
 RESULT_COLUMNS = (
     "table",
@@ -601,6 +603,19 @@ def render_results_markdown(bundle: AggregateBundle) -> str:
     lines.extend(
         [
             "",
+            "## Figures",
+            "",
+            "The public figure set is regenerated only from the same aggregate rows. "
+            "Until complete aggregates are imported, the Dice distribution, runtime "
+            "trade-off, examiner-value, and exemplar-device plots remain **pending**.",
+            "No qualitative fingerprint imagery is published.",
+            "",
+            "## Factual reading",
+            "",
+            "Result-dependent statements remain **pending**. The release process does "
+            "not publish a headline claim from partial rows.",
+            "",
+            "",
             "Source digests:",
             "",
             *[
@@ -611,6 +626,52 @@ def render_results_markdown(bundle: AggregateBundle) -> str:
         ]
     )
     return "\n".join(lines)
+
+
+def render_readme_headline(rows: Sequence[Mapping[str, str]]) -> str:
+    """Render the README headline table from aggregate Table A rows."""
+    table_rows = [
+        row
+        for row in rows
+        if row["table"] == "A" and row["view"] == "overall" and row["group"] == "overall"
+    ]
+    lines = [
+        README_RESULTS_START,
+        "| Family | Approach | Dice | Jaccard | MDR | FDR | Seeds | Params (M) | ms/img (device) |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in table_rows:
+        runtime = row["ms_per_img"] or "pending"
+        if row["device"]:
+            runtime += f" ({row['device']})"
+        lines.append(
+            "| "
+            + " | ".join(
+                (
+                    _markdown(row["family"]),
+                    _markdown(row["approach"]),
+                    _percent(row["dice"]),
+                    _percent(row["jaccard"]),
+                    _percent(row["mdr"]),
+                    _percent(row["fdr"]),
+                    row["seeds_completed"],
+                    row["params_m"] or "pending",
+                    runtime,
+                )
+            )
+            + " |"
+        )
+    lines.append(README_RESULTS_END)
+    return "\n".join(lines)
+
+
+def render_readme(readme: str, rows: Sequence[Mapping[str, str]]) -> str:
+    """Replace only the marker-bound README table, refusing ambiguous input."""
+    if readme.count(README_RESULTS_START) != 1 or readme.count(README_RESULTS_END) != 1:
+        raise AggregateImportError("README generated-result markers are missing or duplicated")
+    start = readme.index(README_RESULTS_START)
+    end = readme.index(README_RESULTS_END, start) + len(README_RESULTS_END)
+    return readme[:start] + render_readme_headline(rows) + readme[end:]
 
 
 def _load_module(name: str, path: Path) -> ModuleType:
@@ -644,6 +705,7 @@ def _assert_site_matches(site_dir: Path, bundle: AggregateBundle) -> None:
 def _stage_outputs(bundle: AggregateBundle, repo_root: Path) -> dict[str, bytes]:
     """Build every aggregate-dependent output in an isolated workspace."""
     required = (
+        repo_root / "README.md",
         repo_root / "site" / "build.py",
         repo_root / "site" / "assets",
         repo_root / "examples" / "synthetic",
@@ -662,6 +724,9 @@ def _stage_outputs(bundle: AggregateBundle, repo_root: Path) -> dict[str, bytes]
         docs_dir.mkdir()
         results_markdown = render_results_markdown(bundle).encode("utf-8")
         (docs_dir / "RESULTS.md").write_bytes(results_markdown)
+        readme = render_readme(
+            (repo_root / "README.md").read_text(encoding="utf-8"), bundle.results
+        ).encode("utf-8")
 
         builder = _load_module("segbench_staged_site_builder", workspace / "site" / "build.py")
         with contextlib.redirect_stdout(io.StringIO()):
@@ -670,6 +735,7 @@ def _stage_outputs(bundle: AggregateBundle, repo_root: Path) -> dict[str, bytes]
         outputs = {
             **{f"results/{name}": data for name, data in bundle.raw_files.items()},
             "docs/RESULTS.md": results_markdown,
+            "README.md": readme,
             "site/index.html": (workspace / "site" / "index.html").read_bytes(),
             "site/build_manifest.json": (workspace / "site" / "build_manifest.json").read_bytes(),
             "site/assets/results/public_results.csv": (
@@ -700,6 +766,7 @@ def _apply_outputs(outputs: Mapping[str, bytes], repo_root: Path) -> None:
     allowed = {
         *(f"results/{name}" for name in EXPECTED_FILES),
         "docs/RESULTS.md",
+        "README.md",
         "site/index.html",
         "site/build_manifest.json",
         "site/assets/results/public_results.csv",
@@ -763,6 +830,7 @@ def run_update(
             "exact manifest-bound CSV inventory",
             "aggregate-only schemas with no per-image columns",
             "no biometric media, trained artifacts, private paths, hosts, IPs, or cloud-drive strings",
+            "README marker table rendered from aggregate rows",
             "documentation rendered from aggregate rows",
             "site payload and source hashes match aggregate rows byte-for-byte",
         ],

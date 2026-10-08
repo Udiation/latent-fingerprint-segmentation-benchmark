@@ -29,14 +29,28 @@ encoder–decoder, transformer, and released fingerprint foreground segmenters.
 Table A values are generated from `results/public_results.csv`; this placeholder
 contains no partial result and will be replaced atomically after the gate.
 
-| Family | Approach | Dice | Jaccard | MDR | FDR | Seeds | Params (M) | ms/img |
+<!-- BEGIN GENERATED HEADLINE RESULTS -->
+| Family | Approach | Dice | Jaccard | MDR | FDR | Seeds | Params (M) | ms/img (device) |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| Classical | GMFS (default) | pending | pending | pending | pending | — | pending | pending |
+| Classical | GMFS (default) | pending | pending | pending | pending | 1 | pending | pending |
+| Classical | GMFS (val-tuned) | pending | pending | pending | pending | 1 | pending | pending |
 | Classical | SVM (Nyström RBF) | pending | pending | pending | pending | 3 | pending | pending |
-| Patch CNN | LeNet | pending | pending | pending | pending | pending | pending | pending |
-| Encoder–decoder | U-Net | pending | pending | pending | pending | pending | pending | pending |
-| Transformer | SegFormer-B2 (substitute†) | pending | pending | pending | pending | pending | pending | pending |
-| Pretrained | SUFS (zero-shot) | pending | pending | pending | pending | — | pending | pending |
+| Classical | Random forest | pending | pending | pending | pending | 3 | pending | pending |
+| Classical | Weighted ELM | pending | pending | pending | pending | 3 | pending | pending |
+| Patch CNN | CNN + stacked AE | pending | pending | pending | pending | 0 | pending | pending |
+| Patch CNN | AlexNet | pending | pending | pending | pending | 0 | pending | pending |
+| Patch CNN | LeNet | pending | pending | pending | pending | 0 | pending | pending |
+| Encoder–decoder | U-Net | pending | pending | pending | pending | 1 | pending | pending |
+| Encoder–decoder | UNet++ | pending | pending | pending | pending | 0 | pending | pending |
+| Encoder–decoder | DRUnet | pending | pending | pending | pending | 0 | pending | pending |
+| Encoder–decoder | RUnet (no alignment) | pending | pending | pending | pending | 0 | pending | pending |
+| Transformer | SegFormer-B2 (substitute†) | pending | pending | pending | pending | 0 | pending | pending |
+| Pretrained | SUFS (zero-shot) | pending | pending | pending | pending | 1 | pending | pending |
+| Pretrained | SUFS (fine-tuned) | pending | pending | pending | pending | 3 | pending | pending |
+| Pretrained | FingerNet (pretrained) | pending | pending | pending | pending | 1 | pending | pending |
+| Reference | All background | pending | pending | pending | pending | 1 | pending | pending |
+| Reference | All foreground | pending | pending | pending | pending | 1 | pending | pending |
+<!-- END GENERATED HEADLINE RESULTS -->
 
 [Full result schema](results/README.md) · [Protocol](docs/PROTOCOL.md) ·
 [Limitations](docs/LIMITATIONS.md)
@@ -96,7 +110,10 @@ python scripts/scan_release.py
 ```
 
 The smoke path is synthetic-only and is designed to finish in under five
-minutes on a CPU. Once an authorised local SD302 copy is available, each paper
+minutes on a CPU. The same flow is available as the output-free
+[`examples/synthetic/quickstart.ipynb`](examples/synthetic/quickstart.ipynb)
+notebook. Its displayed metrics are pipeline checks on generated patterns, not
+paper results. Once an authorised local SD302 copy is available, each paper
 table has one entry point:
 
 ```bash
@@ -118,6 +135,7 @@ python scripts/update_from_aggregate.py \
   --bundle /path/to/public-aggregate-bundle \
   --dry-run \
   --report /path/to/dry-run-report.json
+python scripts/check_release_requirements.py
 ```
 
 The accepted schema and apply command are documented in

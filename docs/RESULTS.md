@@ -61,6 +61,16 @@ No aggregate rows are published for this table yet.
 | A | dice | pending | pending | pending | pending | pending | pending |
 | B1 | hr | pending | pending | pending | pending | pending | pending |
 
+## Figures
+
+The public figure set is regenerated only from the same aggregate rows. Until complete aggregates are imported, the Dice distribution, runtime trade-off, examiner-value, and exemplar-device plots remain **pending**.
+No qualitative fingerprint imagery is published.
+
+## Factual reading
+
+Result-dependent statements remain **pending**. The release process does not publish a headline claim from partial rows.
+
+
 Source digests:
 
 - `public_results.csv`: `35820be4e3e940918c18046cf1a894b6eda9c631b470a5c636e96d9762b4da3d`

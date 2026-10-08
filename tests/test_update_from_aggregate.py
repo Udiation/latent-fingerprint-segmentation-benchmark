@@ -140,6 +140,8 @@ def _bundle(tmp_path: Path, *, result: dict[str, str] | None = None) -> Path:
 
 def _public_tree(tmp_path: Path) -> Path:
     root = tmp_path / "public-repo"
+    root.mkdir()
+    shutil.copy2(ROOT / "README.md", root / "README.md")
     shutil.copytree(ROOT / "site", root / "site")
     shutil.copytree(ROOT / "examples" / "synthetic", root / "examples" / "synthetic")
     (root / "results").mkdir()
@@ -152,6 +154,7 @@ def test_dry_run_rebuilds_in_isolation_without_mutating_targets(tmp_path: Path) 
     bundle = _bundle(tmp_path)
     root = _public_tree(tmp_path)
     old_docs = (root / "docs" / "RESULTS.md").read_bytes()
+    old_readme = (root / "README.md").read_bytes()
     old_site = (root / "site" / "index.html").read_bytes()
     report = MODULE.run_update(bundle, repo_root=root, dry_run=True)
     assert report["status"] == "PASS"
@@ -159,6 +162,7 @@ def test_dry_run_rebuilds_in_isolation_without_mutating_targets(tmp_path: Path) 
     assert report["mutations_applied"] is False
     assert report["aggregate_rows"] == {"results": 1, "statistics": 1, "tables": 1}
     assert (root / "docs" / "RESULTS.md").read_bytes() == old_docs
+    assert (root / "README.md").read_bytes() == old_readme
     assert (root / "site" / "index.html").read_bytes() == old_site
     assert not (root / "results" / "public_results.csv").exists()
 
@@ -175,6 +179,8 @@ def test_apply_installs_only_validated_rows_and_rebuilt_outputs(tmp_path: Path) 
     documentation = (root / "docs" / "RESULTS.md").read_text(encoding="utf-8")
     assert "75.00%" in documentation
     assert "Synthetic aggregate table" in documentation
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    assert "| Synthetic | Synthetic method | 75.00% | 60.00% |" in readme
     site = (root / "site" / "index.html").read_text(encoding="utf-8")
     assert '"dice":"0.75"' in site
     assert (root / "site" / "assets" / "results" / "public_results.csv").read_bytes() == (
@@ -210,6 +216,7 @@ def test_cli_writes_path_free_dry_run_receipt(tmp_path: Path) -> None:
     before = {
         path: hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
         for path in (
+            "README.md",
             "docs/RESULTS.md",
             "results/public_results.csv",
             "site/index.html",

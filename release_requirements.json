@@ -1,0 +1,27 @@
+{
+  "abstract_words": 125,
+  "checks": {
+    "abstract_120_to_150_words": true,
+    "ci_runs_synthetic_and_public_gates": true,
+    "classical_and_zero_shot_configs": true,
+    "interactive_results_features": true,
+    "license_and_citation": true,
+    "method_cards_have_required_fields": true,
+    "readme_badges_and_links": true,
+    "readme_headline_from_aggregate_rows": true,
+    "readme_no_claimed_partial_result": true,
+    "readme_ten_sections": true,
+    "required_repository_structure": true,
+    "site_exactly_twelve_method_cards": true,
+    "site_hull_explainer": true,
+    "site_no_tracking_or_external_analytics": true,
+    "site_sections_and_controls": true,
+    "synthetic_assets_have_receipt": true,
+    "synthetic_demo_is_receipt_gated": true,
+    "twelve_review_method_entries": true
+  },
+  "method_cards": 12,
+  "note": "Result-dependent metrics, model-derived synthetic predictions, and publication remain gated.",
+  "schema_version": 1,
+  "status": "PASS"
+}

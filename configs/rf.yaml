@@ -1,0 +1,20 @@
+schema_version: 1
+method: rf
+display_name: Random forest
+task: block
+data:
+  target_ppi: 500
+  block_size: 16
+  context_size: 32
+  normalization: train_only
+selection:
+  split: val
+  metric: balanced_block_accuracy
+  max_depth: [null, 20]
+  min_samples_leaf: [1, 5]
+  chosen: pending
+model:
+  n_estimators: 200
+  class_weight: balanced
+inference:
+  min_component_blocks: 4
