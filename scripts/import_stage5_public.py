@@ -99,7 +99,7 @@ CROSS_DOMAIN_METHODS = frozenset({
 METHOD_MAP = {"sufs": "sufs_zero", "ra_runet": "r_unet", "segformer_sub": "segformer_b2"}
 CONFIG_METHOD_MAP = {
     "ra_runet": "ra_runet", "ra_runet_aligned": "ra_runet",
-    "segformer_sub": "segformer_sub", "sufs": "sufs_zero"
+    "segformer_sub": "segformer_sub", "sufs_zero": "sufs"
 }
 CONFIG_CANONICAL_METHOD = {
     "sufs_zero": "sufs", "ra_runet_aligned": "ra_runet_aligned",

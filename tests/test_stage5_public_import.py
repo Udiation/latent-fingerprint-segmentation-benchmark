@@ -207,6 +207,10 @@ def _package(tmp_path: Path, *, metadata: bool = False) -> tuple[Path, str]:
         for config_path in sorted((ROOT / "configs").glob("*.yaml")):
             config = MODULE.yaml.safe_load(config_path.read_text(encoding="utf-8"))
             config.setdefault("schema_version", 1)
+            if config_path.stem == "sufs_zero":
+                # The canonical producer names the algorithm (``sufs``), while
+                # the filename distinguishes its zero-shot release row.
+                config["method"] = "sufs"
             task = config.get("task")
             method = config.get("method")
             if task in {"pixel", "patch"} or method == "fingernet":
