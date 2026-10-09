@@ -78,6 +78,8 @@ def test_browser_features_are_wired_to_embedded_aggregate_payload() -> None:
     assert "payload.results" in javascript
     assert "payload.statistics" in javascript
     assert "sig-marker" in javascript
+    assert 'aria-label="High to low"' in html
+    assert 'setAttribute("aria-label", label)' in javascript
 
 
 def test_synthetic_notebook_is_output_free_and_clearly_non_benchmark() -> None:

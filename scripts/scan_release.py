@@ -12,12 +12,19 @@ from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_BYTES = 10 * 1024 * 1024
-BANNED_ARTIFACT_SUFFIXES = {".pt", ".pth", ".joblib", ".npy", ".h5"}
+BANNED_ARTIFACT_SUFFIXES = {
+    ".bin", ".ckpt", ".h5", ".joblib", ".npy", ".npz", ".onnx", ".pt",
+    ".pth", ".safetensors",
+}
 RASTER_SUFFIXES = {".png", ".jpg", ".jpeg", ".bmp", ".webp"}
 TEXT_SUFFIXES = {
     ".py", ".md", ".txt", ".yaml", ".yml", ".json", ".csv", ".toml",
     ".cff", ".html", ".css", ".js", ".svg", ".sh", ".ipynb",
 }
+ALLOWED_NON_TEXT_NAMES = {"LICENSE", ".gitignore"}
+_OPAQUE_TOKEN = re.compile(
+    r"(?<![A-Za-z0-9_-])[A-Za-z0-9_-]{25,80}(?![A-Za-z0-9_-])"
+)
 
 
 def patterns() -> list[tuple[str, re.Pattern[str]]]:
@@ -28,21 +35,46 @@ def patterns() -> list[tuple[str, re.Pattern[str]]]:
         ("SD302-like image identifier", re.compile(r"(?<![A-Za-z0-9])\d{8}_[A-Za-z0-9]")),
         ("source-resolution filename token", re.compile("1000" + "PPI", re.I)),
         ("latent-position filename token", re.compile(r"\bLP\d{2}\b", re.I)),
+        (
+            "local infrastructure hostname",
+            re.compile(
+                r"(?:\b[a-z0-9-]+\.local\b|"
+                r"\b(?:ssh|scp)\s+(?:[^\s@]+@)?[A-Za-z0-9._-]+)",
+                re.I,
+            ),
+        ),
     ]
+
+
+def opaque_identifier(value: str) -> str | None:
+    """Return a cloud-drive-like token without embedding any private denylist.
+
+    Cryptographic digests are uniformly hexadecimal, while repository symbols
+    tend to contain several word separators.  A bounded mixed-case token with
+    a digit and no more than two separators is therefore treated as an opaque
+    external identifier and rejected.  This covers raw cloud file IDs without
+    confusing SHA-1/SHA-256 values or descriptive Python identifiers for one.
+    """
+    for token in _OPAQUE_TOKEN.findall(value):
+        if (
+            any(character.islower() for character in token)
+            and any(character.isupper() for character in token)
+            and any(character.isdigit() for character in token)
+            and sum(character in "_-" for character in token) <= 2
+        ):
+            return token
+    return None
 
 
 def files() -> Iterable[Path]:
     for path in sorted(ROOT.rglob("*")):
         relative = path.relative_to(ROOT)
-        if ".git" in path.parts or any(part in {".smoke", ".venv", ".pytest_cache", "__pycache__", "private_data", "local"} for part in relative.parts) or not path.is_file():
+        if ".git" in path.parts or any(
+            part in {".smoke", ".venv", ".pytest_cache", "__pycache__"}
+            for part in relative.parts
+        ) or not path.is_file():
             continue
         yield path
-
-
-def allowed_identifier_doc(path: Path, label: str) -> bool:
-    return path == ROOT / "docs" / "DATASETS.md" and label in {
-        "SD302-like image identifier", "source-resolution filename token", "latent-position filename token"
-    }
 
 
 def approved_synthetic_hashes() -> set[str]:
@@ -58,7 +90,36 @@ def approved_synthetic_hashes() -> set[str]:
     }
 
 
+def _scan_text(
+    value: str,
+    context: str,
+    errors: list[str],
+    *,
+    allow_identifier_explanation: bool = False,
+) -> None:
+    """Scan semantic text or a repository path with one shared policy."""
+    for label, pattern in patterns():
+        if allow_identifier_explanation and label in {
+            "SD302-like image identifier",
+            "source-resolution filename token",
+            "latent-position filename token",
+        }:
+            continue
+        if pattern.search(value):
+            errors.append(f"{context}: contains {label}")
+    token = opaque_identifier(value)
+    if token is not None:
+        errors.append(f"{context}: contains opaque cloud-drive-like identifier")
+
+
 def scan_history(errors: list[str]) -> None:
+    """Scan every committed patch, excluding commit metadata such as author mail.
+
+    The current-tree scan alone is insufficient: a secret or biometric ID that
+    was deleted in a later commit remains public after a push.  We track each
+    diff's path so the narrowly scoped naming explanation remains the sole
+    exception for SD302-style example tokens.
+    """
     probe = subprocess.run(
         ["git", "rev-parse", "--is-inside-work-tree"],
         cwd=ROOT,
@@ -67,16 +128,35 @@ def scan_history(errors: list[str]) -> None:
     )
     if probe.returncode or probe.stdout.strip() != "true":
         return
-    result = subprocess.run(["git", "log", "-p", "--all", "--no-ext-diff"], cwd=ROOT, capture_output=True, text=True)
+    result = subprocess.run(
+        ["git", "log", "--format=", "-p", "--all", "--no-ext-diff"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
     if result.returncode:
         errors.append("could not inspect git history")
         return
-    history = result.stdout
-    history_patterns = patterns()[:3]
-    for label, pattern in history_patterns:
-        match = pattern.search(history)
-        if match:
-            errors.append(f"git history contains {label}")
+    current_path = ""
+    for line_number, line in enumerate(result.stdout.splitlines(), start=1):
+        if line.startswith("diff --git a/"):
+            match = re.match(r"diff --git a/(.+?) b/(.+)$", line)
+            current_path = match.group(2) if match else ""
+            _scan_text(
+                current_path,
+                f"git history path at patch line {line_number}",
+                errors,
+                allow_identifier_explanation=current_path == "docs/DATASETS.md",
+            )
+            continue
+        if not line.startswith(("+", "-")) or line.startswith(("+++", "---")):
+            continue
+        _scan_text(
+            line[1:],
+            f"git history {current_path or 'unknown path'} at patch line {line_number}",
+            errors,
+            allow_identifier_explanation=current_path == "docs/DATASETS.md",
+        )
 
 
 def main() -> None:
@@ -89,6 +169,12 @@ def main() -> None:
     for path in files():
         checked += 1
         rel = path.relative_to(ROOT)
+        _scan_text(
+            rel.as_posix(),
+            f"repository path {rel}",
+            errors,
+            allow_identifier_explanation=rel == Path("docs/DATASETS.md"),
+        )
         if path.is_symlink():
             errors.append(f"symlink: {rel}")
             continue
@@ -106,18 +192,25 @@ def main() -> None:
                 errors.append(f"plot raster requires a generated figure manifest: {rel}")
             else:
                 errors.append(f"raster outside approved synthetic/figure directories: {rel}")
-        if path.suffix.lower() not in TEXT_SUFFIXES and path.name not in {"LICENSE", ".gitignore"}:
+        if (
+            path.suffix.lower() not in TEXT_SUFFIXES | RASTER_SUFFIXES
+            and path.name not in ALLOWED_NON_TEXT_NAMES
+        ):
+            errors.append(f"unapproved binary or file type: {rel}")
+            continue
+        if path.suffix.lower() not in TEXT_SUFFIXES and path.name not in ALLOWED_NON_TEXT_NAMES:
             continue
         try:
             text = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             errors.append(f"non-UTF8 text artifact: {rel}")
             continue
-        for label, pattern in patterns():
-            if allowed_identifier_doc(path, label):
-                continue
-            if pattern.search(text):
-                errors.append(f"{rel}: contains {label}")
+        _scan_text(
+            text,
+            str(rel),
+            errors,
+            allow_identifier_explanation=path == ROOT / "docs" / "DATASETS.md",
+        )
     scan_history(errors)
     report = {
         "schema_version": 1,
@@ -127,10 +220,12 @@ def main() -> None:
         "checks": [
             "no biometric filename patterns outside the naming explanation",
             "no private absolute paths, cloud-drive references, or IP addresses",
+            "no local infrastructure hostnames or opaque cloud-drive-like identifiers",
             "no trained-weight or data-array artifacts",
             "all raster assets are receipt-bound synthetic images",
+            "no unapproved binary file types",
             "no file exceeds 10 MB",
-            "git patch history has no private paths, cloud-drive URLs, or IP addresses",
+            "git patch history has no private paths, identifiers, infrastructure, or cloud-drive tokens",
         ],
         "errors": errors,
     }

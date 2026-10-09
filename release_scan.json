@@ -6,10 +6,12 @@
   "checks": [
     "no biometric filename patterns outside the naming explanation",
     "no private absolute paths, cloud-drive references, or IP addresses",
+    "no local infrastructure hostnames or opaque cloud-drive-like identifiers",
     "no trained-weight or data-array artifacts",
     "all raster assets are receipt-bound synthetic images",
+    "no unapproved binary file types",
     "no file exceeds 10 MB",
-    "git patch history has no private paths, cloud-drive URLs, or IP addresses"
+    "git patch history has no private paths, identifiers, infrastructure, or cloud-drive tokens"
   ],
   "errors": []
 }

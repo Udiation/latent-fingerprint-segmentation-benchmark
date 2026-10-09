@@ -7,6 +7,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -53,7 +55,7 @@ def test_release_history_scan_runs_from_linked_worktree(monkeypatch, tmp_path: P
         calls.append(list(command))
         if command[1:3] == ["rev-parse", "--is-inside-work-tree"]:
             return subprocess.CompletedProcess(command, 0, "true\n", "")
-        if command[1:3] == ["log", "-p"]:
+        if command[1:3] == ["log", "--format="]:
             return subprocess.CompletedProcess(command, 0, "clean history\n", "")
         raise AssertionError(f"unexpected command: {command}")
 
@@ -61,4 +63,52 @@ def test_release_history_scan_runs_from_linked_worktree(monkeypatch, tmp_path: P
     errors: list[str] = []
     module.scan_history(errors)
     assert errors == []
-    assert ["git", "log", "-p", "--all", "--no-ext-diff"] in calls
+    assert ["git", "log", "--format=", "-p", "--all", "--no-ext-diff"] in calls
+
+
+def test_release_scan_rejects_private_tokens_in_path_content_and_history(
+    monkeypatch, tmp_path: Path
+) -> None:
+    script = ROOT / "scripts" / "scan_release.py"
+    spec = importlib.util.spec_from_file_location("release_scan_policy_test", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    errors: list[str] = []
+    module._scan_text("0000" + "2314_X.png", "path", errors)
+    module._scan_text("1Abcdefghijklmno" + "pqrstuvWXYZ789", "content", errors)
+    module._scan_text("s" + "sh operator@" + "private-node" + ".local", "content", errors)
+    assert any("SD302-like image identifier" in error for error in errors)
+    assert any("opaque cloud-drive-like identifier" in error for error in errors)
+    assert any("local infrastructure hostname" in error for error in errors)
+
+    errors = []
+    module._scan_text(
+        "0000" + "2314_X " + "1000" + "PPI LP" + "01",
+        "docs/DATASETS.md",
+        errors,
+        allow_identifier_explanation=True,
+    )
+    assert errors == []
+
+
+def test_release_scan_rejects_unapproved_binary_suffix(monkeypatch, tmp_path: Path) -> None:
+    script = ROOT / "scripts" / "scan_release.py"
+    spec = importlib.util.spec_from_file_location("release_scan_binary_test", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.ROOT = tmp_path
+    (tmp_path / "payload.zip").write_bytes(b"PK\x03\x04")
+    monkeypatch.setattr(module, "scan_history", lambda errors: None)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["scan_release.py", "--out", str(tmp_path / "scan.json")],
+    )
+    with pytest.raises(SystemExit):
+        module.main()
+    report = json.loads((tmp_path / "scan.json").read_text(encoding="utf-8"))
+    assert report["status"] == "FAIL"
+    assert any("unapproved binary or file type" in error for error in report["errors"])

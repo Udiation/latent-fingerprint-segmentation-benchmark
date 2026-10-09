@@ -166,7 +166,9 @@
   });
   document.querySelector("#sort-toggle")?.addEventListener("click", event => {
     sortAscending = !sortAscending;
-    event.currentTarget.textContent = sortAscending ? "Low to high" : "High to low";
+    const label = sortAscending ? "Low to high" : "High to low";
+    event.currentTarget.textContent = label;
+    event.currentTarget.setAttribute("aria-label", label);
     renderTable();
   });
 
