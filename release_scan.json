@@ -1,14 +1,15 @@
 {
   "schema_version": 1,
   "status": "PASS",
-  "files_checked": 235,
-  "approved_synthetic_hashes": 24,
+  "files_checked": 322,
+  "approved_synthetic_hashes": 62,
   "checks": [
     "no biometric filename patterns outside the naming explanation",
     "no private absolute paths, cloud-drive references, or IP addresses",
     "no local infrastructure hostnames or opaque cloud-drive-like identifiers",
     "no trained-weight or data-array artifacts",
     "all raster assets are receipt-bound synthetic images",
+    "synthetic method outputs pass provenance validation and release completeness",
     "no unapproved binary file types",
     "no file exceeds 10 MB",
     "git patch history has no private paths, identifiers, infrastructure, or cloud-drive tokens"

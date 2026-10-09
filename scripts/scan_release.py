@@ -8,9 +8,14 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import sys
 from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from segbench.synthetic_demo import validate_synthetic_demo_receipt
+
 MAX_BYTES = 10 * 1024 * 1024
 BANNED_ARTIFACT_SUFFIXES = {
     ".bin", ".ckpt", ".h5", ".joblib", ".npy", ".npz", ".onnx", ".pt",
@@ -162,9 +167,33 @@ def scan_history(errors: list[str]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=ROOT / "release_scan.json")
+    parser.add_argument(
+        "--allow-limited-synthetic",
+        action="store_true",
+        help="CI-only: accept a receipt-valid subset build with at least one completed method",
+    )
     args = parser.parse_args()
     errors: list[str] = []
     approved_hashes = approved_synthetic_hashes()
+    synthetic_root = ROOT / "examples" / "synthetic"
+    synthetic_receipt = synthetic_root / "synthetic_receipt.json"
+    try:
+        payload = json.loads(synthetic_receipt.read_text(encoding="utf-8"))
+        index = validate_synthetic_demo_receipt(synthetic_root, payload)
+        statuses = [row["status"] for row in index["methods"].values()]
+        expected_complete = 14
+        if statuses.count("unavailable") != 2:
+            errors.append("synthetic demo does not declare both external-weight methods unavailable")
+        if args.allow_limited_synthetic:
+            if statuses.count("complete") < 1:
+                errors.append("limited synthetic demo executes no method")
+        elif statuses.count("complete") != expected_complete:
+            errors.append(
+                f"synthetic demo has {statuses.count('complete')} complete methods; "
+                f"release requires {expected_complete}"
+            )
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        errors.append(f"synthetic method-demo receipt failed validation: {type(exc).__name__}")
     checked = 0
     for path in files():
         checked += 1
@@ -223,6 +252,7 @@ def main() -> None:
             "no local infrastructure hostnames or opaque cloud-drive-like identifiers",
             "no trained-weight or data-array artifacts",
             "all raster assets are receipt-bound synthetic images",
+            "synthetic method outputs pass provenance validation and release completeness",
             "no unapproved binary file types",
             "no file exceeds 10 MB",
             "git patch history has no private paths, identifiers, infrastructure, or cloud-drive tokens",

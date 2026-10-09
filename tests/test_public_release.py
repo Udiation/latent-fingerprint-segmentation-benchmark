@@ -32,11 +32,19 @@ def test_site_build_and_number_match() -> None:
     payload = json.loads(result.stdout)
     assert payload["status"] == "PASS"
     assert payload["result_rows"] == 18
+    manifest = json.loads((ROOT / "site" / "build_manifest.json").read_text(encoding="utf-8"))
+    receipt = json.loads(
+        (ROOT / "examples" / "synthetic" / "synthetic_receipt.json").read_text(encoding="utf-8")
+    )
+    statuses = [row["status"] for row in receipt["synthetic_demo"]["methods"]]
+    assert manifest["synthetic_examples"] == 3
+    assert manifest["synthetic_complete_methods"] == statuses.count("complete")
+    assert manifest["synthetic_unavailable_methods"] == statuses.count("unavailable")
 
 
 def test_release_scan_passes() -> None:
     run("site/build.py")
-    result = run("scripts/scan_release.py")
+    result = run("scripts/scan_release.py", "--allow-limited-synthetic")
     payload = json.loads(result.stdout)
     assert payload["status"] == "PASS"
     assert payload["errors"] == []

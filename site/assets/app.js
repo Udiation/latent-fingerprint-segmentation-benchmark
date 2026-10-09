@@ -200,12 +200,28 @@
   const source = document.querySelector("#synthetic-source");
   const mask = document.querySelector("#synthetic-mask");
   const caption = document.querySelector("#synthetic-caption");
+  const availability = document.querySelector("#synthetic-availability");
   function populateSyntheticMethods(row) {
     methodSelector.innerHTML = '<option value="ground_truth">Ground truth reference</option>';
-    for (const prediction of row.predictions || []) {
+    const predictions = new Map((row.predictions || []).map(item => [item.method, item]));
+    availability.innerHTML = "";
+    for (const method of row.methods || []) {
       const option = document.createElement("option");
-      option.value = prediction.method; option.textContent = prediction.label;
+      option.value = method.method;
+      option.textContent = method.status === "complete"
+        ? method.label : `${method.label} — ${method.status.replace("_", " ")}`;
+      option.disabled = method.status !== "complete";
       methodSelector.appendChild(option);
+      const item = document.createElement("li");
+      item.className = `method-status ${method.status}`;
+      const state = document.createElement("strong");
+      state.textContent = `${method.label}: ${method.status.replace("_", " ")}`;
+      item.appendChild(state);
+      if (method.reason) item.append(` — ${method.reason}`);
+      if (method.status === "complete" && !predictions.has(method.method)) {
+        throw new Error(`complete synthetic method lacks prediction: ${method.method}`);
+      }
+      availability.appendChild(item);
     }
   }
   function showSynthetic() {

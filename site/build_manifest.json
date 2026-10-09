@@ -8,5 +8,7 @@
   },
   "result_rows": 18,
   "synthetic_examples": 3,
+  "synthetic_complete_methods": 14,
+  "synthetic_unavailable_methods": 2,
   "method_cards": 12
 }

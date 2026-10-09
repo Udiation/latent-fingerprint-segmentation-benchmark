@@ -16,6 +16,14 @@ independent review. They are never attached to the public repository or site.
 The release is fail-closed: partial test values are not promoted to headline
 results before the preregistered seed-zero completion gate passes.
 
+## Are the browser-demo masks benchmark results?
+
+No. They are deterministic CPU micro-runs on generated ridge patterns. Their
+receipt proves which implementation produced each mask, but their abbreviated
+training budget is only an executable-code demonstration. Methods requiring
+external snapshots that are not distributed here are shown as unavailable;
+the site never fabricates a replacement output.
+
 ## How do I add a method?
 
 Add a versioned YAML config, make inference emit a full-resolution probability
@@ -28,4 +36,3 @@ training provenance and any departure from the cited source.
 The hull encloses expert minutiae but does not describe the full fingerprint
 boundary. Dice would penalise valid foreground outside the hull. The benchmark
 therefore reports MC, HR, PAR and OHF.
-

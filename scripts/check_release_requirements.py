@@ -125,7 +125,7 @@ def main() -> None:
         "abstract", "problem", "pipeline", "datasets", "methods", "results", "demo",
         "findings", "reproduce", "limitations", "citation", "metric", "group-filter",
         "sort-toggle", "pareto", "significance-body", "synthetic-select",
-        "synthetic-method", "public-data",
+        "synthetic-method", "synthetic-availability", "public-data",
     }
     checks["site_sections_and_controls"] = required_ids.issubset(audit.ids)
     checks["site_exactly_twelve_method_cards"] = audit.method_cards == 12
@@ -156,13 +156,27 @@ def main() -> None:
     checks["synthetic_assets_have_receipt"] = receipt.get("kind") == "segbench_synthetic_dataset" and bool(
         receipt.get("assets")
     )
+    examples = builder.synthetic_examples()
+    method_rows = examples[0]["methods"] if examples else []
+    complete_methods = sum(row["status"] == "complete" for row in method_rows)
+    unavailable_methods = sum(row["status"] == "unavailable" for row in method_rows)
+    not_built_methods = sum(row["status"] == "not_built" for row in method_rows)
+    checks["synthetic_method_demo_is_executed_and_explicit"] = (
+        len(examples) == 3
+        and len(method_rows) == 16
+        and complete_methods >= 1
+        and unavailable_methods == 2
+        and complete_methods + unavailable_methods + not_built_methods == 16
+        and all(len(example["predictions"]) == complete_methods for example in examples)
+        and receipt.get("synthetic_demo", {}).get("benchmark_evidence") is False
+    )
 
     workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
     checks["ci_runs_synthetic_and_public_gates"] = all(
         token in workflow
         for token in (
             "smoke_synthetic.py", "check_site_numbers.py", "check_accessibility.py",
-            "check_release_requirements.py", "scan_release.py",
+            "build_synthetic_site_demo.py", "check_release_requirements.py", "scan_release.py",
         )
     )
     checks["license_and_citation"] = "MIT License" in (ROOT / "LICENSE").read_text(
@@ -260,7 +274,10 @@ def main() -> None:
         "checks": checks,
         "method_cards": audit.method_cards,
         "abstract_words": len(abstract_words),
-        "note": "Result-dependent metrics, model-derived synthetic predictions, and publication remain gated.",
+        "note": (
+            "Result-dependent metrics and publication remain gated. Public synthetic "
+            "outputs are executable-code demonstrations, not benchmark evidence."
+        ),
     }
     (ROOT / "release_requirements.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"

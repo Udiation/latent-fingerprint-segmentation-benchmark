@@ -102,7 +102,8 @@ See [DATASETS.md](docs/DATASETS.md) for acquisition and reconstruction steps.
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
-python scripts/make_synthetic_demo.py --out examples/synthetic --subjects 6 --per-subject 2
+python scripts/make_synthetic_demo.py --out examples/synthetic --subjects 4 --per-subject 1 --seed 7
+python scripts/build_synthetic_site_demo.py --methods rf --steps 1 --threads 1
 python scripts/smoke_synthetic.py --work-dir .smoke
 python site/build.py
 python scripts/check_site_numbers.py
@@ -113,7 +114,21 @@ The smoke path is synthetic-only and is designed to finish in under five
 minutes on a CPU. The same flow is available as the output-free
 [`examples/synthetic/quickstart.ipynb`](examples/synthetic/quickstart.ipynb)
 notebook. Its displayed metrics are pipeline checks on generated patterns, not
-paper results. Once an authorised local SD302 copy is available, each paper
+paper results. The core-only command genuinely fits and runs the random-forest
+implementation and marks every unrequested method as `not_built`. To rebuild
+all locally executable website outputs, install `requirements-deep.txt` and
+`requirements-pretrained.txt`, then run:
+
+```bash
+CUDA_VISIBLE_DEVICES='' KERAS_BACKEND=torch \
+  python scripts/build_synthetic_site_demo.py --methods all --steps 30 --threads 2
+```
+
+This slower command uses tiny synthetic-only CPU training budgets. It is an
+executable-code demonstration, not benchmark evidence. FingerNet and
+ImageNet-initialized SegFormer remain explicitly unavailable because their
+pinned external snapshots are not distributed in this repository. Once an
+authorised local SD302 copy is available, each paper
 table has one entry point:
 
 ```bash

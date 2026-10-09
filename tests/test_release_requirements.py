@@ -67,7 +67,8 @@ def test_browser_features_are_wired_to_embedded_aggregate_payload() -> None:
     javascript = (ROOT / "site" / "assets" / "app.js").read_text(encoding="utf-8")
     for element_id in (
         "metric", "group-filter", "sort-toggle", "result-body", "pareto",
-        "significance-body", "synthetic-select", "synthetic-method", "public-data",
+        "significance-body", "synthetic-select", "synthetic-method",
+        "synthetic-availability", "public-data",
     ):
         assert f'id="{element_id}"' in html
     for function in (
@@ -102,7 +103,13 @@ def test_method_prediction_contract_is_fail_closed() -> None:
     assert "source_stem" in source
     examples = builder.synthetic_examples()
     assert examples
-    assert all("predictions" in example for example in examples)
+    assert all(len(example["methods"]) == 16 for example in examples)
+    statuses = {row["method"]: row["status"] for row in examples[0]["methods"]}
+    assert statuses["fingernet"] == "unavailable"
+    assert statuses["segformer_sub"] == "unavailable"
+    complete = sum(status == "complete" for status in statuses.values())
+    assert complete >= 1
+    assert all(len(example["predictions"]) == complete for example in examples)
 
 
 def test_synthetic_receipt_rejects_path_traversal() -> None:

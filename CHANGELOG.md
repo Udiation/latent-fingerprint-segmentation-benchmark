@@ -24,3 +24,7 @@
 - Replaced placeholder table dispatch with hash-bound one-command reproduction
   plans for A, A-prime, B1 and D, including complete-coverage and GT-policy
   checks plus synthetic transaction tests.
+- Added a deterministic CPU-only synthetic website artifact builder. Fourteen
+  executable implementations now produce receipt-bound masks for three
+  generated sources; FingerNet and SegFormer remain explicit unavailable
+  entries because their pinned external snapshots are not distributed.

@@ -720,6 +720,17 @@ def _stage_outputs(bundle: AggregateBundle, repo_root: Path) -> dict[str, bytes]
             (results_dir / name).write_bytes(data)
         shutil.copytree(repo_root / "site", workspace / "site")
         shutil.copytree(repo_root / "examples" / "synthetic", workspace / "examples" / "synthetic")
+        (workspace / "segbench").mkdir()
+        shutil.copy2(ROOT / "segbench" / "__init__.py", workspace / "segbench" / "__init__.py")
+        shutil.copy2(
+            ROOT / "segbench" / "synthetic_demo.py",
+            workspace / "segbench" / "synthetic_demo.py",
+        )
+        (workspace / "scripts").mkdir()
+        shutil.copy2(
+            ROOT / "scripts" / "build_synthetic_site_demo.py",
+            workspace / "scripts" / "build_synthetic_site_demo.py",
+        )
         docs_dir = workspace / "docs"
         docs_dir.mkdir()
         results_markdown = render_results_markdown(bundle).encode("utf-8")
