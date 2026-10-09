@@ -53,12 +53,18 @@ def _result_row(**overrides: str) -> dict[str, str]:
             "status": "complete",
             "seeds_completed": "1",
             "dice": "0.75",
+            "dice_seed_std": "0.01",
             "jaccard": "0.60",
+            "jaccard_seed_std": "0.02",
             "mdr": "0.20",
+            "mdr_seed_std": "0.03",
             "fdr": "0.10",
+            "fdr_seed_std": "0.01",
             "accuracy": "0.85",
             "params_m": "1.25",
+            "params_m_seed_std": "0.00",
             "ms_per_img": "4.5",
+            "ms_per_img_seed_std": "0.2",
             "device": "CPU",
             "ci_lower": "0.70",
             "ci_upper": "0.80",
@@ -177,12 +183,13 @@ def test_apply_installs_only_validated_rows_and_rebuilt_outputs(tmp_path: Path) 
         bundle / "public_results.csv"
     ).read_bytes()
     documentation = (root / "docs" / "RESULTS.md").read_text(encoding="utf-8")
-    assert "75.00%" in documentation
+    assert "75.00% ± 1.00%" in documentation
     assert "Synthetic aggregate table" in documentation
     readme = (root / "README.md").read_text(encoding="utf-8")
-    assert "| Synthetic | Synthetic method | 75.00% | 60.00% |" in readme
+    assert "| Synthetic | Synthetic method | 75.00% ± 1.00% | 60.00% ± 2.00% |" in readme
     site = (root / "site" / "index.html").read_text(encoding="utf-8")
     assert '"dice":"0.75"' in site
+    assert '"dice_seed_std":"0.01"' in site
     assert (root / "site" / "assets" / "results" / "public_results.csv").read_bytes() == (
         bundle / "public_results.csv"
     ).read_bytes()

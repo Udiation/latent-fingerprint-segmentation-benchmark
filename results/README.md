@@ -48,3 +48,53 @@ python scripts/update_from_aggregate.py \
 After review, replace `--dry-run` with `--apply`. The report records only
 schemas, counts, hashes, checks, and generated-output hashes; it never records
 the source path.
+
+## Canonical Stage-5 bridge
+
+The final benchmark pipeline exports a richer, aggregate-only Stage-5 package.
+`scripts/import_stage5_public.py` is the publication bridge from that canonical
+schema to the compact CSVs above, the paper tables, aggregate figures, website,
+chosen configs, and anonymous subject split. Its trust root is an independently
+supplied SHA-256 of `package_receipt.json`; deriving the expected digest from the
+same package is intentionally unsupported.
+
+Alongside tables, statistics, captions, figures, and
+`public/release_universe.json`, final release mode requires receipt-bound files
+at the following exact extension paths:
+
+- `public/configs/*.yaml` for selected public configurations; and
+- `public/splits/sd302_subject_split.json` for the 136/24/40 anonymous split.
+
+If those extensions are absent, a normal dry run reports them as absent and
+does not invent or overwrite either artifact. `--require-release-metadata`
+turns their absence into a hard failure and is mandatory for a final release.
+See [PUBLICATION.md](../docs/PUBLICATION.md) for the controlled-apply and scan
+phases.
+
+The bridge also enforces the preregistered row universe rather than accepting
+an arbitrary non-empty table: all 16 Dataset-1 method rows plus the two
+references must be present for A, A′, and each of VALUE/LIMITED/NOVALUE; B1
+additionally requires the aligned RA-RUnet and hull reference; D requires the
+13 methods trained on SD302-Latent and evaluated on exemplars. Every observed
+B1 group/device/capture bucket must contain that complete applicable method
+set. The receipt also binds `public/release_universe.json`, whose exact
+table/view/group/method projection must equal `tables.csv`. Unavailable methods
+remain explicit rows with reasons. Across-seed standard deviations are carried
+through the compact CSV, README, generated Markdown, and website; they are not
+discarded during conversion.
+
+Trainable pixel/patch configs declare `selection.status: selected`, the exact
+seven-value validation grid, and a `threshold_by_seed` mapping whose keys equal
+the canonical completed seed IDs. The two unseeded pretrained selectors use a
+single `chosen_threshold`. A selector may be `unavailable` only when its reason
+exactly matches every applicable unavailable table row; the bridge never fills
+in a missing threshold. Classical block configurations similarly retain a
+`chosen_by_seed` parameter mapping keyed by the canonical completed seeds; a
+single `chosen` mapping is accepted only when it equals every per-seed choice.
+
+The current producer can encode an unavailable point-estimate statistic with a
+blank status and placeholder interval. The bridge normalizes only the exact
+case where the same receipt-bound table/method row is explicitly unavailable:
+it copies that reason and removes the placeholder statistics. The count is
+reported as `canonical_reconciliations.unavailable_point_estimates`; every
+other blank or unknown status fails closed.

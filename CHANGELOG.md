@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Added a fail-closed, receipt/SHA-bound bridge from the canonical Stage-5
+  aggregate package into public tables, statistics, configs, split, figures,
+  documentation, and site inputs.
+- Enforced the complete preregistered method/group universe and retained all
+  canonical across-seed standard deviations through public rendering.
+- Added manifest-only aggregate PNG/PDF publication with path, digest, MIME,
+  semantic kind, and source-receipt checks.
+- Split privacy scans into controlled working and immutable final phases, and
+  added a durable Lighthouse accessibility floor of 0.90.
+
 - Added a clean-room public repository layout, synthetic-data smoke test,
   reproducibility scripts, privacy scanner, and static project-page builder.
 - Added protocol and dataset documentation with final benchmark values marked

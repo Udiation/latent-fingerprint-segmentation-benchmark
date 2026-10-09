@@ -10,6 +10,7 @@
     "license_and_citation": true,
     "method_cards_have_required_fields": true,
     "private_demo_is_receipt_authenticated": true,
+    "publication_bridge_is_receipt_and_clean_tree_gated": true,
     "readme_badges_and_links": true,
     "readme_headline_from_aggregate_rows": true,
     "readme_no_claimed_partial_result": true,

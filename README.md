@@ -107,7 +107,7 @@ python scripts/build_synthetic_site_demo.py --methods rf --steps 1 --threads 1
 python scripts/smoke_synthetic.py --work-dir .smoke
 python site/build.py
 python scripts/check_site_numbers.py
-python scripts/scan_release.py
+python scripts/scan_release.py --phase working --allow-limited-synthetic
 ```
 
 The smoke path is synthetic-only and is designed to finish in under five
@@ -158,6 +158,24 @@ python scripts/check_release_requirements.py
 
 The accepted schema and apply command are documented in
 [`results/README.md`](results/README.md).
+
+The final publication bridge consumes the canonical Stage-5 package directly,
+with its receipt digest supplied independently. Run a dry conversion first;
+the final metadata flag refuses publication unless the same receipt also binds
+the chosen public configs and anonymous subject split:
+
+```bash
+python scripts/import_stage5_public.py \
+  --package "$STAGE5_PACKAGE" \
+  --expected-receipt-sha256 "$STAGE5_RECEIPT_SHA256" \
+  --require-release-metadata --dry-run \
+  --report /path/outside/the/repository/stage5-import-dry-run.json
+```
+
+After controlled apply, use the working scan while the generated files are
+deliberately uncommitted. Commit those exact files, then run the final clean-tree
+scan with its report outside the repository. See
+[`PUBLICATION.md`](docs/PUBLICATION.md).
 
 The receipt-authenticated private review interface is documented separately in
 [`PRIVATE_DEMO.md`](docs/PRIVATE_DEMO.md) and

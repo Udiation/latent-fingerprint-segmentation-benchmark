@@ -53,18 +53,31 @@ RESULT_COLUMNS = (
     "n_images",
     "n_subjects",
     "accuracy",
+    "accuracy_seed_std",
     "error_rate",
+    "error_rate_seed_std",
     "dice",
+    "dice_seed_std",
     "jaccard",
+    "jaccard_seed_std",
     "miou",
+    "miou_seed_std",
     "mdr",
+    "mdr_seed_std",
     "fdr",
+    "fdr_seed_std",
     "mc",
+    "mc_seed_std",
     "hr",
+    "hr_seed_std",
     "par",
+    "par_seed_std",
     "ohf",
+    "ohf_seed_std",
     "params_m",
+    "params_m_seed_std",
     "ms_per_img",
+    "ms_per_img_seed_std",
     "device",
     "ci_lower",
     "ci_upper",
@@ -82,6 +95,7 @@ STATISTIC_COLUMNS = (
 )
 TABLE_COLUMNS = ("table", "title", "status", "note")
 ALLOWED_STATUSES = {"pending", "complete", "n/a"}
+HULL_TABLES = {"B1", "D"}
 UNIT_INTERVAL_FIELDS = {
     "accuracy",
     "error_rate",
@@ -95,6 +109,16 @@ UNIT_INTERVAL_FIELDS = {
     "ohf",
     "ci_lower",
     "ci_upper",
+    "accuracy_seed_std",
+    "error_rate_seed_std",
+    "dice_seed_std",
+    "jaccard_seed_std",
+    "miou_seed_std",
+    "mdr_seed_std",
+    "fdr_seed_std",
+    "mc_seed_std",
+    "hr_seed_std",
+    "ohf_seed_std",
 }
 FORBIDDEN_FIELD_NAMES = {
     "image_id",
@@ -373,7 +397,10 @@ def _validate_results(rows: Sequence[Mapping[str, str]]) -> None:
             raise AggregateImportError(f"{prefix}:seeds_completed is invalid")
         for field in UNIT_INTERVAL_FIELDS:
             _number(row[field], f"{prefix}:{field}", minimum=0.0, maximum=1.0)
-        for field in ("par", "params_m", "ms_per_img"):
+        for field in (
+            "par", "par_seed_std", "params_m", "params_m_seed_std",
+            "ms_per_img", "ms_per_img_seed_std",
+        ):
             _number(row[field], f"{prefix}:{field}", minimum=0.0)
         for field in ("n_images", "n_subjects"):
             value = row[field]
@@ -389,7 +416,7 @@ def _validate_results(rows: Sequence[Mapping[str, str]]) -> None:
         if row["status"] == "complete":
             required = (
                 ("mc", "hr", "par", "ohf")
-                if row["table"] == "B1"
+                if row["table"] in HULL_TABLES
                 else ("dice", "jaccard", "mdr", "fdr", "accuracy")
             )
             if any(row[field] == "" for field in required):
@@ -498,6 +525,18 @@ def _percent(value: str) -> str:
     return "pending" if value == "" else f"{float(value) * 100:.2f}%"
 
 
+def _with_std(value: str, std: str, *, percent: bool = False) -> str:
+    """Render a mean and its across-seed standard deviation when present."""
+    if value == "":
+        return "pending"
+    scale = 100.0 if percent else 1.0
+    suffix = "%" if percent else ""
+    rendered = f"{float(value) * scale:.2f}{suffix}"
+    if std != "":
+        rendered += f" ± {float(std) * scale:.2f}{suffix}"
+    return rendered
+
+
 def render_results_markdown(bundle: AggregateBundle) -> str:
     """Render the public results page from the same rows consumed by the site."""
     lines = [
@@ -523,7 +562,7 @@ def render_results_markdown(bundle: AggregateBundle) -> str:
         if not rows:
             lines.extend(["No aggregate rows are published for this table yet.", ""])
             continue
-        if table["table"] == "B1":
+        if table["table"] in HULL_TABLES:
             lines.extend(
                 [
                     "| Approach | Group | Status | Seeds | MC | HR | PAR | OHF | "
@@ -537,12 +576,12 @@ def render_results_markdown(bundle: AggregateBundle) -> str:
                     _markdown(row["group"]),
                     row["status"],
                     row["seeds_completed"],
-                    _percent(row["mc"]),
-                    _percent(row["hr"]),
-                    row["par"] or "pending",
-                    _percent(row["ohf"]),
-                    row["params_m"] or "pending",
-                    row["ms_per_img"] or "pending",
+                    _with_std(row["mc"], row["mc_seed_std"], percent=True),
+                    _with_std(row["hr"], row["hr_seed_std"], percent=True),
+                    _with_std(row["par"], row["par_seed_std"]),
+                    _with_std(row["ohf"], row["ohf_seed_std"], percent=True),
+                    _with_std(row["params_m"], row["params_m_seed_std"]),
+                    _with_std(row["ms_per_img"], row["ms_per_img_seed_std"]),
                     row["device"] or "—",
                 )
                 lines.append("| " + " | ".join(values) + " |")
@@ -561,12 +600,12 @@ def render_results_markdown(bundle: AggregateBundle) -> str:
                     _markdown(row["family"]),
                     row["status"],
                     row["seeds_completed"],
-                    _percent(row["dice"]),
-                    _percent(row["jaccard"]),
-                    _percent(row["mdr"]),
-                    _percent(row["fdr"]),
-                    row["params_m"] or "pending",
-                    row["ms_per_img"] or "pending",
+                    _with_std(row["dice"], row["dice_seed_std"], percent=True),
+                    _with_std(row["jaccard"], row["jaccard_seed_std"], percent=True),
+                    _with_std(row["mdr"], row["mdr_seed_std"], percent=True),
+                    _with_std(row["fdr"], row["fdr_seed_std"], percent=True),
+                    _with_std(row["params_m"], row["params_m_seed_std"]),
+                    _with_std(row["ms_per_img"], row["ms_per_img_seed_std"]),
                     row["device"] or "—",
                 )
                 lines.append("| " + " | ".join(values) + " |")
@@ -641,7 +680,7 @@ def render_readme_headline(rows: Sequence[Mapping[str, str]]) -> str:
         "|---|---|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in table_rows:
-        runtime = row["ms_per_img"] or "pending"
+        runtime = _with_std(row["ms_per_img"], row["ms_per_img_seed_std"])
         if row["device"]:
             runtime += f" ({row['device']})"
         lines.append(
@@ -650,12 +689,12 @@ def render_readme_headline(rows: Sequence[Mapping[str, str]]) -> str:
                 (
                     _markdown(row["family"]),
                     _markdown(row["approach"]),
-                    _percent(row["dice"]),
-                    _percent(row["jaccard"]),
-                    _percent(row["mdr"]),
-                    _percent(row["fdr"]),
+                    _with_std(row["dice"], row["dice_seed_std"], percent=True),
+                    _with_std(row["jaccard"], row["jaccard_seed_std"], percent=True),
+                    _with_std(row["mdr"], row["mdr_seed_std"], percent=True),
+                    _with_std(row["fdr"], row["fdr_seed_std"], percent=True),
                     row["seeds_completed"],
-                    row["params_m"] or "pending",
+                    _with_std(row["params_m"], row["params_m_seed_std"]),
                     runtime,
                 )
             )

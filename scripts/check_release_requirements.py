@@ -64,6 +64,8 @@ def _required_paths() -> tuple[str, ...]:
         "results", "figures", "docs/METHODOLOGY.md", "docs/PROTOCOL.md",
         "docs/DATASETS.md", "docs/METHODS.md", "docs/RESULTS.md",
         "docs/LIMITATIONS.md", "docs/FAQ.md", "docs/REPRODUCTION.md",
+        "docs/PUBLICATION.md", "figures/figure_manifest.json",
+        "scripts/import_stage5_public.py", "scripts/check_lighthouse.py",
         "examples/synthetic/quickstart.ipynb",
         "tests", "environment.yml", "requirements.txt", "pyproject.toml",
         ".github/workflows/ci.yml", ".github/workflows/pages.yml",
@@ -178,6 +180,19 @@ def main() -> None:
             "smoke_synthetic.py", "check_site_numbers.py", "check_accessibility.py",
             "build_synthetic_site_demo.py", "check_release_requirements.py", "scan_release.py",
         )
+    )
+    publication = (ROOT / "docs" / "PUBLICATION.md").read_text(encoding="utf-8")
+    bridge = (ROOT / "scripts" / "import_stage5_public.py").read_text(encoding="utf-8")
+    checks["publication_bridge_is_receipt_and_clean_tree_gated"] = all(
+        token in bridge
+        for token in (
+            "expected_receipt_sha256", "require_release_metadata",
+            "statistics JSON/CSV", "release_universe.json",
+            "controlled apply requires a clean Git worktree",
+        )
+    ) and all(
+        token in publication
+        for token in ("--phase working", "--phase final", "--minimum 0.90")
     )
     checks["license_and_citation"] = "MIT License" in (ROOT / "LICENSE").read_text(
         encoding="utf-8"

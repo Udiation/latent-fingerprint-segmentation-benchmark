@@ -24,13 +24,23 @@ APPROVED_RESULT_COLUMNS = {
     "training_data", "comment", "status", "seeds_completed", "n_images",
     "n_subjects", "accuracy", "error_rate", "dice", "jaccard", "miou", "mdr",
     "fdr", "mc", "hr", "par", "ohf", "params_m", "ms_per_img", "device",
+    "accuracy_seed_std", "error_rate_seed_std", "dice_seed_std",
+    "jaccard_seed_std", "miou_seed_std", "mdr_seed_std", "fdr_seed_std",
+    "mc_seed_std", "hr_seed_std", "par_seed_std", "ohf_seed_std",
+    "params_m_seed_std", "ms_per_img_seed_std",
     "ci_lower", "ci_upper",
 }
 METRICS = {
     "accuracy", "error_rate", "dice", "jaccard", "miou", "mdr", "fdr",
-    "mc", "hr", "ohf", "ci_lower", "ci_upper",
+    "mc", "hr", "ohf", "ci_lower", "ci_upper", "accuracy_seed_std",
+    "error_rate_seed_std", "dice_seed_std", "jaccard_seed_std",
+    "miou_seed_std", "mdr_seed_std", "fdr_seed_std", "mc_seed_std",
+    "hr_seed_std", "ohf_seed_std",
 }
-NONNEGATIVE = {"par", "params_m", "ms_per_img", "n_images", "n_subjects"}
+NONNEGATIVE = {
+    "par", "params_m", "ms_per_img", "n_images", "n_subjects",
+    "par_seed_std", "params_m_seed_std", "ms_per_img_seed_std",
+}
 
 # One card per Fig. 2 entry. Result rows are intentionally not used as a method
 # catalogue because GMFS/SUFS and AlexNet/LeNet each expand to multiple rows.
@@ -364,7 +374,7 @@ bash scripts/reproduce_table_A.sh --config local/benchmark.env
 python site/build.py
 python scripts/check_site_numbers.py
 python scripts/check_release_requirements.py
-python scripts/scan_release.py</pre><p>Seeds, thresholds, immutable split assignment, and one-command table entry points are documented in <a href="https://github.com/Udiation/latent-fingerprint-segmentation-benchmark/blob/main/docs/PROTOCOL.md">PROTOCOL.md</a>.</p></div></section>
+python scripts/scan_release.py --phase working --allow-limited-synthetic</pre><p>Seeds, thresholds, immutable split assignment, and one-command table entry points are documented in <a href="https://github.com/Udiation/latent-fingerprint-segmentation-benchmark/blob/main/docs/PROTOCOL.md">PROTOCOL.md</a>.</p></div></section>
 <section id="limitations" class="section"><div class="wrap"><h2>Limitations</h2><p class="section-intro">Reimplementations can differ from original code; SegFormer is a declared substitute; released zero-shot models have external training provenance; ROI and usable-ridge GT answer different questions; exemplar hulls are lower bounds; and one coordinated data source cannot establish every deployment domain.</p></div></section>
 <section id="citation" class="section"><div class="wrap"><h2>Citation</h2><pre id="bibtex">@software{{narayan2026latentseg,
   author = {{Narayan, Udit and {{TODO: co-authors}}}},
