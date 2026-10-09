@@ -23,7 +23,7 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest>=8.0"]
 deep = ["torch>=2.1", "transformers>=4.45"]
-demo = ["gradio>=5.0"]
+demo = ["gradio>=5.0", "Pillow>=10"]
 
 [tool.setuptools]
 packages = ["segbench", "report", "demo"]
@@ -35,4 +35,3 @@ markers = [
   "optional_dependency: test requires an optional runtime dependency",
   "slow: test is not part of the five-minute public smoke test",
 ]
-

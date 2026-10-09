@@ -11,7 +11,7 @@
       "table_status.csv": "2c853f6146b16eb55c904752adb0d294018b4df69fd061e30e6ef3e392987567"
     },
     "kind": "stage4_public_aggregate_bundle",
-    "manifest_sha256": "c7211228d7e733941a66b300b926be16bfa1133e926a3b4152a7388c3d93e765",
+    "manifest_sha256": "274c1d8a2523fe64f42883dc717ff932860684ee0b87b754831c8ce62fabab87",
     "schema_version": 1
   },
   "checks": [
@@ -27,7 +27,7 @@
   "mode": "dry-run",
   "mutations_applied": false,
   "output_sha256": {
-    "README.md": "dd736d4ace67538a9b636e247fc6973551ed054470eb1f25e38c915f284bc2cc",
+    "README.md": "1200722a71fdb0dafd8bee1f67de78da02d3cd5c36d489c7e3df1607a76d3302",
     "docs/RESULTS.md": "327f77a867220c2fbc617460fa7dedb48883afff572019468771584b78140881",
     "results/public_results.csv": "35820be4e3e940918c18046cf1a894b6eda9c631b470a5c636e96d9762b4da3d",
     "results/statistics.csv": "6d978d65665669028638f9f21f6e22990fc1ba87cee7bf2559a98d874f8f1574",

@@ -108,6 +108,24 @@ class ExternalWorker:
     cpu_workers: int
 
 
+@dataclass(frozen=True)
+class CoexistingWorker:
+    """Read-only worker owned by a separately authenticated live controller.
+
+    Unlike ``ExternalWorker``, this controller never adopts, resumes, signals,
+    or writes state for this process.  It is counted only for GPU slots,
+    process ownership, RAM, and CPU reservations.
+    """
+
+    name: str
+    pid: int
+    start_ticks: int
+    argv_sha256: str
+    gpu: int
+    host_ram_gib: float
+    cpu_workers: int
+
+
 def _declared_identity(item: Mapping[str, Any]) -> str:
     return canonical_sha256(
         {
@@ -149,32 +167,47 @@ def validate_adopted_queue_runtime(
         or binding.get("kind") != ADOPTED_BINDING_KIND
     ):
         raise ValueError("adopted queue lacks its execution binding")
+    def validate_code_identity(value: Any, description: str) -> Path:
+        if not isinstance(value, dict):
+            raise ValueError(f"adopted queue lacks its {description} code identity")
+        root = Path(str(value.get("root", "")))
+        if not root.is_absolute() or not root.is_dir():
+            raise ValueError(f"adopted {description} code root is unavailable")
+        commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=root, text=True
+        ).strip()
+        tree = subprocess.check_output(
+            ["git", "rev-parse", "HEAD^{tree}"], cwd=root, text=True
+        ).strip()
+        status = subprocess.check_output(
+            ["git", "status", "--porcelain", "--untracked-files=all"],
+            cwd=root,
+            text=True,
+        )
+        if (
+            commit != value.get("git_commit")
+            or tree != value.get("git_tree")
+            or status.strip()
+        ):
+            raise ValueError(f"adopted {description} code identity or cleanliness changed")
+        file_hashes = value.get("files_sha256")
+        if not isinstance(file_hashes, dict) or not file_hashes:
+            raise ValueError(f"adopted {description} code file hashes are absent")
+        for relative, expected in file_hashes.items():
+            path = root / str(relative)
+            if not path.is_file() or sha256_file(path) != expected:
+                raise ValueError(f"adopted {description} code file changed: {relative}")
+        return root
+
     code = binding.get("code")
-    if not isinstance(code, dict):
-        raise ValueError("adopted queue lacks its code identity")
-    code_root = Path(str(code.get("root", "")))
-    if not code_root.is_absolute() or not code_root.is_dir():
-        raise ValueError("adopted code root is unavailable")
-    commit = subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=code_root, text=True
-    ).strip()
-    tree = subprocess.check_output(
-        ["git", "rev-parse", "HEAD^{tree}"], cwd=code_root, text=True
-    ).strip()
-    status = subprocess.check_output(
-        ["git", "status", "--porcelain", "--untracked-files=all"],
-        cwd=code_root,
-        text=True,
-    )
-    if commit != code.get("git_commit") or tree != code.get("git_tree") or status.strip():
-        raise ValueError("adopted code identity or cleanliness changed")
-    file_hashes = code.get("files_sha256")
-    if not isinstance(file_hashes, dict) or not file_hashes:
-        raise ValueError("adopted code file hashes are absent")
-    for relative, expected in file_hashes.items():
-        path = code_root / str(relative)
-        if not path.is_file() or sha256_file(path) != expected:
-            raise ValueError(f"adopted code file changed: {relative}")
+    code_root = validate_code_identity(code, "default")
+    job_code = binding.get("job_code", {})
+    if not isinstance(job_code, dict):
+        raise ValueError("adopted per-job code identities are invalid")
+    job_code_roots = {
+        str(name): validate_code_identity(value, f"job {name}")
+        for name, value in job_code.items()
+    }
 
     cache_dir = Path(str(binding.get("cache_dir", "")))
     receipt = Path(str(binding.get("cache_receipt", "")))
@@ -339,6 +372,7 @@ def validate_adopted_queue_runtime(
         or binding.get("oom_batch_policy") != OOM_BATCH_POLICY
         or legacy & amended
         or legacy | amended != {str(item.get("name")) for item in jobs}
+        or set(job_code_roots) - {str(item.get("name")) for item in jobs}
         or set(hashes) != amended
         or set(batch_hashes) != amended
         or set(legacy_hashes) != legacy
@@ -395,7 +429,8 @@ def validate_adopted_queue_runtime(
         if Path(_single_option(argv, "--threshold-amendment")).resolve() != amendment.resolve():
             raise ValueError(f"{name}: threshold amendment differs from the binding")
         entrypoint = Path(argv[1]).resolve() if len(argv) > 1 else Path()
-        if entrypoint.parent != (code_root / "segbench" / "scripts").resolve():
+        selected_code_root = job_code_roots.get(name, code_root)
+        if entrypoint.parent != (selected_code_root / "segbench" / "scripts").resolve():
             raise ValueError(f"{name}: training entrypoint escaped the bound code tree")
         config_path = Path(_single_option(argv, "--config"))
         if not config_path.is_file() or sha256_file(config_path) != hashes[name]:
@@ -702,6 +737,181 @@ def _external_is_exactly_live(worker: ExternalWorker) -> bool:
     )
 
 
+def _coexisting_is_exactly_live(worker: CoexistingWorker) -> bool:
+    return (
+        _process_start_ticks(worker.pid) == worker.start_ticks
+        and _process_argv_sha256(worker.pid) == worker.argv_sha256
+    )
+
+
+def load_coexisting_controller_plan(
+    path: Path,
+    *,
+    target_queue: Path,
+    gpus: Sequence[int],
+    max_per_gpu: int,
+    max_project_ram_gib: float,
+    max_cpu_cores: int,
+    memory_fraction: float,
+) -> Dict[str, Any]:
+    """Authenticate an immutable, read-only controller-coexistence contract."""
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError("coexisting-controller plan must be an object")
+    expected = {
+        "schema_version": 1,
+        "kind": "guarded_queue_coexisting_controller_plan",
+        "target_queue_sha256": sha256_file(target_queue),
+        "allowed_gpus": list(gpus),
+        "max_jobs_per_gpu": max_per_gpu,
+        "max_project_ram_gib": max_project_ram_gib,
+        "max_cpu_cores": max_cpu_cores,
+        "memory_fraction": memory_fraction,
+        "read_only_source": True,
+        "may_signal_source": False,
+        "may_write_source_ledger": False,
+    }
+    disagreements = {
+        key: (value.get(key), required)
+        for key, required in expected.items()
+        if value.get(key) != required
+    }
+    if disagreements:
+        raise ValueError(
+            f"coexisting-controller plan binding changed: {disagreements}"
+        )
+    source_queue = Path(str(value.get("source_queue", "")))
+    source_state = Path(str(value.get("source_state", "")))
+    source_proof = Path(str(value.get("source_proof", "")))
+    if (
+        not source_queue.is_absolute()
+        or not source_state.is_absolute()
+        or not source_proof.is_absolute()
+        or not source_queue.is_file()
+        or not source_state.is_file()
+        or not source_proof.is_file()
+        or sha256_file(source_queue) != value.get("source_queue_sha256")
+        or sha256_file(source_proof) != value.get("source_proof_sha256")
+    ):
+        raise ValueError("coexisting source queue/state/proof identity changed")
+    # Replays every cache/config/code binding carried by the mixed recovery.
+    if validate_adopted_queue_runtime(source_queue) is None:
+        raise ValueError("coexisting source is not an authenticated adopted queue")
+    source_jobs = load_guarded_jobs(source_queue)
+    declared = value.get("source_jobs")
+    observed = [
+        {
+            "name": job.name,
+            "identity_sha256": job.identity_sha256,
+            "completion_artifact": str(job.completion_artifact),
+            "host_ram_gib": job.host_ram_gib,
+            "cpu_workers": job.cpu_workers,
+        }
+        for job in source_jobs
+    ]
+    if declared != observed or not observed:
+        raise ValueError("coexisting source job universe changed")
+    controller = value.get("source_controller")
+    if (
+        not isinstance(controller, dict)
+        or type(controller.get("pid")) is not int
+        or type(controller.get("start_ticks")) is not int
+        or not _is_sha256(controller.get("argv_sha256"))
+    ):
+        raise ValueError("coexisting source controller identity is invalid")
+    return value
+
+
+def observe_coexisting_workers(plan: Mapping[str, Any]) -> List[CoexistingWorker]:
+    """Return one stable, exactly authenticated read-only source snapshot.
+
+    The source ledger is read twice.  If it changes during inspection the
+    operation retries; no launch decision is made from a torn snapshot.
+    Once co-scheduling starts, the source may only move monotonically from
+    ``running`` to ``completed``.  Retry/preemption/failure therefore fails
+    closed instead of racing a second controller's relaunch.
+    """
+    source_queue = Path(str(plan["source_queue"]))
+    source_state = Path(str(plan["source_state"]))
+    if sha256_file(source_queue) != plan["source_queue_sha256"]:
+        raise ValueError("coexisting source queue changed")
+    if validate_adopted_queue_runtime(source_queue) is None:
+        raise ValueError("coexisting source queue lost its execution binding")
+    source_jobs = {job.name: job for job in load_guarded_jobs(source_queue)}
+    declared_names = [str(item["name"]) for item in plan["source_jobs"]]
+    if list(source_jobs) != declared_names:
+        raise ValueError("coexisting source job order/universe changed")
+    stable: Optional[bytes] = None
+    payload: Optional[Dict[str, Any]] = None
+    for _ in range(5):
+        first = source_state.read_bytes()
+        candidate = json.loads(first)
+        second = source_state.read_bytes()
+        if first == second and isinstance(candidate, dict):
+            stable, payload = first, candidate
+            break
+        time.sleep(0.05)
+    if stable is None or payload is None:
+        raise RuntimeError("coexisting source ledger did not yield a stable snapshot")
+    if payload.get("queue_sha256") != plan["source_queue_sha256"]:
+        raise ValueError("coexisting source ledger is not bound to its queue")
+    states = payload.get("jobs")
+    if not isinstance(states, dict) or set(states) != set(source_jobs):
+        raise ValueError("coexisting source ledger job universe changed")
+    running: List[CoexistingWorker] = []
+    for name, job in source_jobs.items():
+        entry = states[name]
+        if not isinstance(entry, dict) or entry.get("identity_sha256") != job.identity_sha256:
+            raise ValueError(f"{name}: coexisting ledger identity changed")
+        status = entry.get("status")
+        if status == "completed":
+            if (
+                not job.completion_artifact.is_file()
+                or entry.get("artifact_sha256") != sha256_file(job.completion_artifact)
+            ):
+                raise ValueError(f"{name}: coexisting completion artifact changed")
+            continue
+        if status != "running":
+            raise RuntimeError(
+                f"{name}: coexisting source left the running/completed contract: {status!r}"
+            )
+        worker = entry.get("worker")
+        if not isinstance(worker, dict):
+            raise ValueError(f"{name}: coexisting running identity is absent")
+        observed = CoexistingWorker(
+            name=name,
+            pid=int(worker.get("pid", -1)),
+            start_ticks=int(worker.get("start_ticks", -1)),
+            argv_sha256=str(worker.get("argv_sha256", "")),
+            gpu=int(worker.get("gpu", -1)),
+            host_ram_gib=job.host_ram_gib,
+            cpu_workers=job.cpu_workers,
+        )
+        if observed.gpu not in plan["allowed_gpus"]:
+            raise ValueError(f"{name}: coexisting worker escaped allowed GPUs")
+        if not _coexisting_is_exactly_live(observed):
+            # Exit-before-ledger-update is safe only when the declared output
+            # already exists; do not count a vanished PID as owned.
+            if job.completion_artifact.is_file() and _process_start_ticks(observed.pid) is None:
+                continue
+            raise RuntimeError(f"{name}: coexisting worker PID identity changed")
+        running.append(observed)
+    controller = plan["source_controller"]
+    if running and not (
+        _process_start_ticks(int(controller["pid"])) == int(controller["start_ticks"])
+        and _process_argv_sha256(int(controller["pid"])) == controller["argv_sha256"]
+    ):
+        raise RuntimeError("coexisting source controller identity changed")
+    per_gpu = {
+        gpu: sum(worker.gpu == gpu for worker in running)
+        for gpu in plan["allowed_gpus"]
+    }
+    source_cap = int(plan.get("source_max_jobs_per_gpu", 0))
+    if source_cap not in {1, 2, 3} or any(count > source_cap for count in per_gpu.values()):
+        raise ValueError("coexisting source exceeds its registered GPU cap")
+    return running
+
+
 def load_external_workers(
     path: Path,
     *,
@@ -970,7 +1180,9 @@ def owned_ram_gib(running: Sequence[GuardedRunning]) -> float:
     return sum(_pid_pss_bytes(pid) for pid in pids) / GIB
 
 
-def external_owned_ram_gib(workers: Sequence[ExternalWorker]) -> float:
+def external_owned_ram_gib(
+    workers: Sequence[ExternalWorker | CoexistingWorker],
+) -> float:
     pids: set[int] = set()
     for worker in workers:
         pids.update(base.descendants(worker.pid))
@@ -979,7 +1191,7 @@ def external_owned_ram_gib(workers: Sequence[ExternalWorker]) -> float:
 
 def owned_pids_including_external(
     running: Sequence[GuardedRunning],
-    external: Sequence[ExternalWorker],
+    external: Sequence[ExternalWorker | CoexistingWorker],
     gpus: Sequence[int],
 ) -> Dict[int, set[int]]:
     """Return all locally launched and exactly adopted process trees by GPU."""
@@ -1040,6 +1252,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--min-available-ram-gib", type=float, default=0.0)
     parser.add_argument("--external-workers-plan", type=Path)
     parser.add_argument("--external-workers-proof", type=Path)
+    parser.add_argument("--coexisting-controller-plan", type=Path)
     args = parser.parse_args(argv)
     args.gpus = base.parse_gpu_list(args.gpus)
     if not 1 <= args.max_per_gpu <= 3:
@@ -1053,6 +1266,10 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     if (args.external_workers_plan is None) != (args.external_workers_proof is None):
         parser.error(
             "--external-workers-plan and --external-workers-proof must be used together"
+        )
+    if args.coexisting_controller_plan is not None and args.external_workers_plan is not None:
+        parser.error(
+            "read-only controller coexistence cannot be combined with worker adoption"
         )
     return args
 
@@ -1127,6 +1344,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     external: List[ExternalWorker] = []
     external_plan: Optional[Dict[str, Any]] = None
     external_completed: Dict[str, Dict[str, Any]] = {}
+    coexisting_plan: Optional[Dict[str, Any]] = None
     if args.external_workers_plan is not None:
         external, external_plan = load_external_workers(
             args.external_workers_plan,
@@ -1178,6 +1396,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             external_completed[name] = adoption
         if external_plan.get("precompleted_workers"):
             atomic_json(args.state, state)
+    if args.coexisting_controller_plan is not None:
+        coexisting_plan = load_coexisting_controller_plan(
+            args.coexisting_controller_plan,
+            target_queue=args.jobs,
+            gpus=args.gpus,
+            max_per_gpu=args.max_per_gpu,
+            max_project_ram_gib=args.max_project_ram_gib,
+            max_cpu_cores=args.max_cpu_cores,
+            memory_fraction=args.memory_fraction,
+        )
     failed: List[str] = []
     stop_requested = False
 
@@ -1190,6 +1418,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     signal.signal(signal.SIGINT, request_stop)
     signal.signal(signal.SIGTERM, request_stop)
     while pending or running or external:
+        coexisting = (
+            observe_coexisting_workers(coexisting_plan)
+            if coexisting_plan is not None
+            else []
+        )
         devices, processes = base.gpu_snapshot()
         remaining_external: List[ExternalWorker] = []
         for worker in external:
@@ -1272,7 +1505,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             external_completed[worker.name] = record
         external = remaining_external
 
-        owned = owned_pids_including_external(running, external, args.gpus)
+        occupancy = [*external, *coexisting]
+        owned = owned_pids_including_external(running, occupancy, args.gpus)
 
         # The union of adopted and locally launched process trees is owned.
         # A foreign heavy process cooperatively preempts all project workers on
@@ -1296,7 +1530,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             code = item.process.process.poll()
             if code is None:
                 if (
-                    external_owned_ram_gib(external) + owned_ram_gib(running)
+                    external_owned_ram_gib(occupancy) + owned_ram_gib(running)
                     > args.max_project_ram_gib
                 ):
                     item.process.preempt_path.touch()
@@ -1357,15 +1591,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         for gpu in args.gpus:
             slots = args.max_per_gpu - sum(
                 item.process.gpu == gpu for item in running
-            ) - sum(worker.gpu == gpu for worker in external)
+            ) - sum(worker.gpu == gpu for worker in occupancy)
             for _ in range(max(slots, 0)):
                 if stop_requested:
                     break
                 external_reserved = sum(
-                    worker.host_ram_gib for worker in external
+                    worker.host_ram_gib for worker in occupancy
                 )
-                external_owned = external_owned_ram_gib(external)
-                external_cpu = sum(worker.cpu_workers for worker in external)
+                external_owned = external_owned_ram_gib(occupancy)
+                external_cpu = sum(worker.cpu_workers for worker in occupancy)
                 candidate = next(
                     (
                         job for job in pending
@@ -1386,7 +1620,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     break
                 devices, processes = base.gpu_snapshot()
                 owned = owned_pids_including_external(
-                    running, external, args.gpus
+                    running, occupancy, args.gpus
                 )
                 if gpu not in devices or devices[gpu][1] < args.min_free_mib:
                     break

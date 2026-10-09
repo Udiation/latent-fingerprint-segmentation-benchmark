@@ -175,6 +175,43 @@ def main() -> None:
         for name in ("svm.yaml", "rf.yaml", "welm.yaml", "gmfs.yaml", "sufs_zero.yaml", "fingernet.yaml")
     )
 
+    handoff = (ROOT / "scripts" / "autonomous_validation_handoff.py").read_text(
+        encoding="utf-8"
+    )
+    checks["validation_handoff_is_runtime_policy_bound"] = all(
+        token in handoff
+        for token in ("runtime_policy", "allowed_gpu_indices", "test_or_heldout_opened")
+    ) and re.search(r'"--gpus",\s*"[0-9]+(?:,[0-9]+)+"', handoff) is None
+
+    incremental = (ROOT / "segbench" / "stage3_incremental.py").read_text(
+        encoding="utf-8"
+    )
+    checks["incremental_scoring_is_score_once"] = all(
+        token in incremental
+        for token in (
+            "score-once-journal", "automatic rescore forbidden",
+            "imported_not_rescored",
+        )
+    )
+
+    private_backend = (ROOT / "demo" / "restricted_backend.py").read_text(
+        encoding="utf-8"
+    )
+    checks["private_demo_is_receipt_authenticated"] = all(
+        token in private_backend
+        for token in (
+            "DEMO_ARTIFACT_RECEIPT_SHA256", "weights_only=True",
+            "DEMO_CUDA_MEMORY_FRACTION",
+        )
+    ) and all(
+        (ROOT / relative).is_file()
+        for relative in (
+            "scripts/build_demo_receipt.py",
+            "docs/PRIVATE_DEMO.md",
+            "docs/PRIVATE_DEMO_RUNBOOK.md",
+        )
+    )
+
     report = {
         "schema_version": 1,
         "status": "PASS" if all(checks.values()) else "FAIL",

@@ -12,3 +12,7 @@
 - Added generated README results, explicit classical/zero-shot configs, an
   output-free synthetic notebook, and CI gates for structure, accessibility,
   number matching, and privacy.
+- Added an infrastructure-neutral, identity-bound validation handoff and an
+  append-only one-time seed scoring/import workflow.
+- Added the receipt-authenticated private-demo backend, in-memory upload path,
+  five-tab review UI, deployment runbook, and synthetic security tests.

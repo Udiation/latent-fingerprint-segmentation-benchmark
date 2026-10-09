@@ -68,6 +68,26 @@ pixel-overlap metric is reported against it.
   validation or test target image;
 - all test masks remain sealed until the validation-selected model is frozen.
 
+## Validation handoff and one-time scoring
+
+Validation probability replay is controlled by an identity-bound handoff that
+accepts only a preregistered source process, immutable queue bytes, and a clean
+code revision. Its device and resource policy is supplied at deployment time;
+the public implementation contains no machine topology. The controller can
+co-schedule validation-only work but cannot signal the source controller,
+modify its ledger, open the test split, or launch the selected full-training
+queue. An ineligible historical full run is replaced in a new versioned
+namespace rather than overwritten.
+
+After validation selection is frozen, each final seed may receive its one
+held-out score through an append-only journal. Table A and Table A-prime reuse
+the same authenticated prediction bytes, and the common evaluator is invoked
+exactly once per endpoint. This operational G3 delivery does not satisfy the
+multi-seed G4 analysis gate: final statistical analysis still requires at
+least two successful seeds for every trainable native family. Import into the
+combined delivery verifies hashes and copies evidence byte-for-byte without
+rescoring.
+
 ## Public aggregate publication boundary
 
 The public repository never imports evaluator-level or per-image artifacts.

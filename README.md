@@ -141,6 +141,15 @@ python scripts/check_release_requirements.py
 The accepted schema and apply command are documented in
 [`results/README.md`](results/README.md).
 
+The receipt-authenticated private review interface is documented separately in
+[`PRIVATE_DEMO.md`](docs/PRIVATE_DEMO.md) and
+[`PRIVATE_DEMO_RUNBOOK.md`](docs/PRIVATE_DEMO_RUNBOOK.md). It is not part of
+the public website and accepts only digest-pinned local artifacts.
+
+Validation-only handoff and one-time seed delivery are described in
+[`AUTONOMOUS_VALIDATION_HANDOFF.md`](docs/AUTONOMOUS_VALIDATION_HANDOFF.md) and
+[`STAGE3_INCREMENTAL_RUNBOOK.md`](docs/STAGE3_INCREMENTAL_RUNBOOK.md).
+
 ## Protocol summary
 
 - Frozen 136/24/40-subject train/validation/test assignment.
