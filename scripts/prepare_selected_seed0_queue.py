@@ -46,8 +46,10 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--queue-out", required=True, type=Path)
     parser.add_argument("--proof-out", required=True, type=Path)
     parser.add_argument("--segformer-dir", type=Path)
-    parser.add_argument("--job-host-ram-gib", required=True, type=float)
-    parser.add_argument("--job-cpu-workers", required=True, type=int)
+    parser.add_argument("--host-ram-gib", required=True, type=float)
+    parser.add_argument("--cpu-workers", required=True, type=int)
+    parser.add_argument("--resource-evidence", required=True, type=Path)
+    parser.add_argument("--resource-evidence-sha256", required=True)
     return parser.parse_args(argv)
 
 
@@ -181,8 +183,32 @@ def _completed_deferred_replay(
 
 
 def prepare(args: argparse.Namespace) -> Dict[str, Any]:
-    if args.job_host_ram_gib <= 0 or args.job_cpu_workers <= 0:
-        raise ValueError("job resource reservations must be positive")
+    if (
+        not math.isfinite(args.host_ram_gib)
+        or args.host_ram_gib <= 0.0
+        or type(args.cpu_workers) is not int
+        or args.cpu_workers <= 0
+    ):
+        raise ValueError("selected full-job resource reservations must be positive")
+    if (
+        not args.resource_evidence.is_absolute()
+        or not args.resource_evidence.is_file()
+        or len(args.resource_evidence_sha256) != 64
+        or any(
+            character not in "0123456789abcdef"
+            for character in args.resource_evidence_sha256
+        )
+        or sha256_file(args.resource_evidence) != args.resource_evidence_sha256
+    ):
+        raise ValueError("selected full-job resource evidence identity changed")
+    resource_reservation = {
+        "host_ram_gib_per_job": float(args.host_ram_gib),
+        "cpu_workers_per_job": int(args.cpu_workers),
+        "reservation_evidence": {
+            "path": str(args.resource_evidence),
+            "sha256": str(args.resource_evidence_sha256),
+        },
+    }
     for path, label in (
         (args.python, "Python"), (args.manifest, "manifest"),
         (args.splits, "split"), (args.threshold_amendment, "amendment"),
@@ -233,6 +259,11 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
             config = yaml.safe_load(base_path.read_text(encoding="utf-8"))
             if not isinstance(config, dict) or config.get("method") != "sufs_ft":
                 raise ValueError("sufs_ft: base configuration changed")
+            if int(config.get("training", {}).get("num_workers", -1)) != args.cpu_workers:
+                raise ValueError(
+                    "sufs_ft: configured DataLoader workers differ from the "
+                    "selected full-job CPU reservation"
+                )
             evidence = selection.get("candidates")
             if not isinstance(evidence, list) or len(evidence) != 2:
                 raise ValueError("sufs_ft: expanded-grid selection lacks both candidates")
@@ -298,8 +329,8 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
                 "env": {"KERAS_BACKEND": "torch"},
                 "completion_artifact": str(out / "run.json"),
                 "resources": {
-                    "host_ram_gib": float(args.job_host_ram_gib),
-                    "cpu_workers": int(args.job_cpu_workers),
+                    "host_ram_gib": float(args.host_ram_gib),
+                    "cpu_workers": int(args.cpu_workers),
                 },
             }
             job["job_identity_sha256"] = canonical_sha256(job)
@@ -370,12 +401,14 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
                 raise ValueError("SegFormer full training requires a pinned local snapshot")
             env["SEGBENCH_SEGFORMER_B2_DIR"] = str(args.segformer_dir)
         resources = {
-            # Preserve the operator-declared conservative full-run reservation.
-            # The launcher may schedule fewer jobs when its aggregate guard
-            # requires it.
-            "host_ram_gib": float(args.job_host_ram_gib),
-            "cpu_workers": int(training.get("num_workers", 8)),
+            "host_ram_gib": float(args.host_ram_gib),
+            "cpu_workers": int(args.cpu_workers),
         }
+        if int(training.get("num_workers", -1)) != args.cpu_workers:
+            raise ValueError(
+                f"{method}: configured DataLoader workers differ from the selected "
+                "full-job CPU reservation"
+            )
         job = {
             "name": f"full.{method}.seed0",
             "argv": argv,
@@ -400,6 +433,7 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         "launch_authorized": bool(jobs),
         "selection_split": "val",
         "test_inference_authorized": False,
+        "resource_reservation": dict(resource_reservation),
         "jobs": jobs,
     }
     _write_yaml_once(args.queue_out, queue)
@@ -415,6 +449,7 @@ def prepare(args: argparse.Namespace) -> Dict[str, Any]:
         "queue": str(args.queue_out),
         "queue_sha256": sha256_file(args.queue_out),
         "jobs": [job["name"] for job in jobs],
+        "resource_reservation": queue["resource_reservation"],
         "decisions": decisions,
         "gpu_launched": False,
     }

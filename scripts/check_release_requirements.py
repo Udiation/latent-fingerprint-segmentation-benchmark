@@ -180,8 +180,31 @@ def main() -> None:
     )
     checks["validation_handoff_is_runtime_policy_bound"] = all(
         token in handoff
-        for token in ("runtime_policy", "allowed_gpu_indices", "test_or_heldout_opened")
+        for token in (
+            "runtime_policy", "allowed_gpus", "reservation_evidence",
+            "host_ram_gib_per_job", "cpu_workers_per_job",
+            "test_or_heldout_opened",
+        )
     ) and re.search(r'"--gpus",\s*"[0-9]+(?:,[0-9]+)+"', handoff) is None
+    checks["validation_handoff_requires_source_completion"] = all(
+        token in handoff
+        for token in (
+            "_source_completion_gate", "durably completed",
+            "any source worker remains running",
+        )
+    )
+
+    seed0_handoff = (ROOT / "scripts" / "autonomous_seed0_handoff.py").read_text(
+        encoding="utf-8"
+    )
+    checks["seed0_handoff_is_runtime_policy_bound"] = all(
+        token in seed0_handoff
+        for token in (
+            "runtime_policy", "allowed_gpus", "reservation_evidence",
+            "host_ram_gib_per_job", "cpu_workers_per_job",
+            "test_or_heldout_opened",
+        )
+    ) and re.search(r'"--gpus",\s*"[0-9]+(?:,[0-9]+)+"', seed0_handoff) is None
 
     incremental = (ROOT / "segbench" / "stage3_incremental.py").read_text(
         encoding="utf-8"

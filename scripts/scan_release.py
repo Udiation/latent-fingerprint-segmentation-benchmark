@@ -59,7 +59,13 @@ def approved_synthetic_hashes() -> set[str]:
 
 
 def scan_history(errors: list[str]) -> None:
-    if not (ROOT / ".git").is_dir():
+    probe = subprocess.run(
+        ["git", "rev-parse", "--is-inside-work-tree"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if probe.returncode or probe.stdout.strip() != "true":
         return
     result = subprocess.run(["git", "log", "-p", "--all", "--no-ext-diff"], cwd=ROOT, capture_output=True, text=True)
     if result.returncode:

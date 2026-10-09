@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import importlib.util
 import json
 from pathlib import Path
 import subprocess
@@ -38,3 +39,26 @@ def test_release_scan_passes() -> None:
     assert payload["status"] == "PASS"
     assert payload["errors"] == []
 
+
+def test_release_history_scan_runs_from_linked_worktree(monkeypatch, tmp_path: Path) -> None:
+    script = ROOT / "scripts" / "scan_release.py"
+    spec = importlib.util.spec_from_file_location("release_scan_under_test", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.ROOT = tmp_path
+    calls: list[list[str]] = []
+
+    def fake_run(command, **kwargs):
+        calls.append(list(command))
+        if command[1:3] == ["rev-parse", "--is-inside-work-tree"]:
+            return subprocess.CompletedProcess(command, 0, "true\n", "")
+        if command[1:3] == ["log", "-p"]:
+            return subprocess.CompletedProcess(command, 0, "clean history\n", "")
+        raise AssertionError(f"unexpected command: {command}")
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+    errors: list[str] = []
+    module.scan_history(errors)
+    assert errors == []
+    assert ["git", "log", "-p", "--all", "--no-ext-diff"] in calls

@@ -33,21 +33,35 @@ def _file(path: Path, content: str = "fixture\n") -> Path:
     return path
 
 
-def _runtime_policy() -> dict:
-    """Small synthetic resource policy; no deployment topology is encoded."""
+def _runtime_policy():
     return {
-        "allowed_gpu_indices": [0],
-        "max_jobs_per_gpu": 1,
+        "allowed_gpus": [2, 4],
+        "max_jobs_per_gpu": 2,
+        "memory_fraction": 0.25,
+        "max_cpu_cores": 32,
+        "max_project_ram_gib": 128.0,
+        "min_disk_free_fraction": 0.2,
         "min_free_mib": 1024,
         "foreign_process_mib": 512,
-        "memory_fraction": 0.25,
-        "min_disk_free_fraction": 0.1,
-        "max_project_ram_gib": 48.0,
-        "max_cpu_cores": 4,
-        "min_available_ram_gib": 2.0,
-        "seed0_host_ram_gib": 12.0,
-        "seed0_cpu_workers": 2,
+        "min_available_ram_gib": 8.0,
     }
+
+
+def _resource_evidence(tmp_path: Path):
+    path = _file(tmp_path / "private-resource-evidence.md", "measured fixture\n")
+    return {"path": str(path), "sha256": sha256_file(path)}
+
+
+def _selected_resources(tmp_path: Path):
+    return {
+        "host_ram_gib_per_job": 16.0,
+        "cpu_workers_per_job": 4,
+        "reservation_evidence": _resource_evidence(tmp_path),
+    }
+
+
+def _late_candidates():
+    return [{"method": "synthetic", "host_ram_gib": 16.0, "cpu_workers": 0}]
 
 
 def test_coexisting_snapshot_authenticates_controller_and_worker(
@@ -75,7 +89,7 @@ def test_coexisting_snapshot_authenticates_controller_and_worker(
                     "pid": 101,
                     "start_ticks": 202,
                     "argv_sha256": "b" * 64,
-                    "gpu": 0,
+                    "gpu": 1,
                 },
             }
         },
@@ -85,12 +99,12 @@ def test_coexisting_snapshot_authenticates_controller_and_worker(
         "schema_version": 1,
         "kind": "guarded_queue_coexisting_controller_plan",
         "target_queue_sha256": sha256_file(target),
-        "allowed_gpus": [0],
-        "max_jobs_per_gpu": 1,
+        "allowed_gpus": [1, 3],
+        "max_jobs_per_gpu": 3,
         "source_max_jobs_per_gpu": 2,
-        "max_project_ram_gib": 48.0,
-        "max_cpu_cores": 4,
-        "memory_fraction": 0.25,
+        "max_project_ram_gib": 512.0,
+        "max_cpu_cores": 64,
+        "memory_fraction": 0.3,
         "read_only_source": True,
         "may_signal_source": False,
         "may_write_source_ledger": False,
@@ -128,14 +142,14 @@ def test_coexisting_snapshot_authenticates_controller_and_worker(
     loaded = module.load_coexisting_controller_plan(
         plan_path,
         target_queue=target,
-        gpus=[0],
-        max_per_gpu=1,
-        max_project_ram_gib=48.0,
-        max_cpu_cores=4,
-        memory_fraction=0.25,
+        gpus=[1, 3],
+        max_per_gpu=3,
+        max_project_ram_gib=512.0,
+        max_cpu_cores=64,
+        memory_fraction=0.3,
     )
     workers = module.observe_coexisting_workers(loaded)
-    assert [(worker.name, worker.gpu) for worker in workers] == [(job.name, 0)]
+    assert [(worker.name, worker.gpu) for worker in workers] == [(job.name, 1)]
     assert loaded["may_signal_source"] is False
     monkeypatch.setattr(module, "_process_argv_sha256", lambda _pid: "d" * 64)
     with pytest.raises(RuntimeError, match="PID identity|controller identity"):
@@ -199,7 +213,9 @@ def test_selected_seed0_builder_uses_validation_receipt_only(tmp_path: Path) -> 
         threshold_amendment=amendment, runs_root=tmp_path / "runs",
         config_out=tmp_path / "configs", queue_out=tmp_path / "queue.yaml",
         proof_out=tmp_path / "proof.json", segformer_dir=None,
-        job_host_ram_gib=12.0, job_cpu_workers=2,
+        host_ram_gib=16.0, cpu_workers=8,
+        resource_evidence=Path(_resource_evidence(tmp_path)["path"]),
+        resource_evidence_sha256=_resource_evidence(tmp_path)["sha256"],
     )
     result = module.prepare(args)
     assert result["status"] == "READY_NOT_LAUNCHED"
@@ -212,7 +228,8 @@ def test_selected_seed0_builder_uses_validation_receipt_only(tmp_path: Path) -> 
     generated = yaml.safe_load((args.config_out / "unetpp.yaml").read_text())
     assert generated["training"]["learning_rate"] == 0.0003
     assert generated["training"]["threshold_candidates"] == [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
-    assert queue["jobs"][0]["resources"]["host_ram_gib"] == 12.0
+    assert queue["jobs"][0]["resources"]["host_ram_gib"] == 16.0
+    assert queue["resource_reservation"]["reservation_evidence"] == _resource_evidence(tmp_path)
 
 
 def test_selected_seed0_reuse_requires_completed_final_validation_replay(
@@ -352,7 +369,9 @@ def test_selected_seed0_builder_emits_fresh_versioned_sufs_job(
         threshold_amendment=amendment, runs_root=tmp_path / "runs",
         config_out=tmp_path / "configs", queue_out=tmp_path / "queue.yaml",
         proof_out=tmp_path / "proof.json", segformer_dir=None,
-        job_host_ram_gib=12.0, job_cpu_workers=2,
+        host_ram_gib=16.0, cpu_workers=8,
+        resource_evidence=Path(_resource_evidence(tmp_path)["path"]),
+        resource_evidence_sha256=_resource_evidence(tmp_path)["sha256"],
     )
     result = module.prepare(args)
     assert result["jobs"] == ["full.sufs_ft.seed0"]
@@ -384,6 +403,10 @@ def test_handoff_prepare_binds_current_and_future_controller_without_launch(
         yaml.safe_dump({
             "schema_version": 1,
             "kind": "autonomous_validation_handoff_spec",
+            "source_completion_required": True,
+            "runtime_policy": _runtime_policy(),
+            "selected_full_resources": _selected_resources(tmp_path),
+            "late_candidates": _late_candidates(),
             "transition_controller": {
                 "pid": 10,
                 "start_ticks": 20,
@@ -395,7 +418,6 @@ def test_handoff_prepare_binds_current_and_future_controller_without_launch(
             },
             "initial_replay_plan": str(initial_plan),
             "initial_replay_queue": str(initial_queue),
-            "runtime_policy": _runtime_policy(),
         }),
     )
     monkeypatch.setattr(module, "_process_start_ticks", lambda _pid: 20)
@@ -409,6 +431,23 @@ def test_handoff_prepare_binds_current_and_future_controller_without_launch(
     assert proof["gpu_launched"] is False
     assert proof["test_or_heldout_opened"] is False
     assert proof["source_controller_phase"] == "transition_watcher"
+    plan = json.loads((tmp_path / "plan.json").read_text(encoding="utf-8"))
+    assert plan["late_candidates"][0]["cpu_workers"] == 0
+    assert (
+        plan["selected_full_resources"]["reservation_evidence"]
+        == _resource_evidence(tmp_path)
+    )
+
+
+def test_selected_resource_evidence_mutation_fails_closed(tmp_path: Path) -> None:
+    module = _module("autonomous_validation_handoff.py")
+    selected = _selected_resources(tmp_path)
+    assert module._validated_selected_full_resources(selected) == selected
+    Path(selected["reservation_evidence"]["path"]).write_text(
+        "mutated\n", encoding="utf-8"
+    )
+    with pytest.raises(ValueError, match="evidence identity changed"):
+        module._validated_selected_full_resources(selected)
 
 
 def test_handoff_prepare_accepts_only_preregistered_post_exec_argv(
@@ -430,6 +469,10 @@ def test_handoff_prepare_accepts_only_preregistered_post_exec_argv(
         yaml.safe_dump({
             "schema_version": 1,
             "kind": "autonomous_validation_handoff_spec",
+            "source_completion_required": True,
+            "runtime_policy": _runtime_policy(),
+            "selected_full_resources": _selected_resources(tmp_path),
+            "late_candidates": _late_candidates(),
             "transition_controller": {
                 "pid": 10,
                 "start_ticks": 20,
@@ -441,7 +484,6 @@ def test_handoff_prepare_accepts_only_preregistered_post_exec_argv(
             },
             "initial_replay_plan": str(initial_plan),
             "initial_replay_queue": str(initial_queue),
-            "runtime_policy": _runtime_policy(),
         }),
     )
     monkeypatch.setattr(module, "_process_start_ticks", lambda _pid: 20)
@@ -495,6 +537,28 @@ def test_completed_source_accepts_expected_controller_exit_only(
         module._completed_source_controller_identity(plan, queue)
 
 
+def test_source_completion_gate_is_fail_closed() -> None:
+    module = _module("autonomous_validation_handoff.py")
+    assert module._source_completion_gate({"jobs": {}}) is False
+    for status in ("pending", "running", "retrying", "preempted", None):
+        assert module._source_completion_gate({
+            "jobs": {
+                "source.a": {"status": "completed"},
+                "source.b": {"status": status},
+            }
+        }) is False
+    assert module._source_completion_gate({
+        "jobs": {
+            "source.a": {"status": "completed"},
+            "source.b": {"status": "completed"},
+        }
+    }) is True
+    with pytest.raises(RuntimeError, match="failed job"):
+        module._source_completion_gate({
+            "jobs": {"source.a": {"status": "failed"}},
+        })
+
+
 def test_handoff_run_is_validation_only_and_stops_at_seed0_preparation(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -512,6 +576,7 @@ def test_handoff_run_is_validation_only_and_stops_at_seed0_preparation(
     handoff = tmp_path / "handoff"
     plan = {
         "kind": module.PLAN_KIND,
+        "source_completion_required": True,
         "test_or_heldout_opened": False,
         "code": {"root": str(code_root)},
         "handoff_root": str(handoff),
@@ -527,6 +592,7 @@ def test_handoff_run_is_validation_only_and_stops_at_seed0_preparation(
         "runs_root": str(tmp_path / "runs"),
         "segformer_dir": str(tmp_path / "segformer"),
         "runtime_policy": _runtime_policy(),
+        "selected_full_resources": _selected_resources(tmp_path),
     }
     _file(plan_path, json.dumps(plan))
     monkeypatch.setattr(module, "_verify_code", lambda _value: code_root)
@@ -562,6 +628,11 @@ def test_handoff_run_is_validation_only_and_stops_at_seed0_preparation(
             out = Path(argv[argv.index("--out-dir") + 1])
             _file(out / "summary.json", json.dumps({"kind": "synthetic"}))
         elif label == "selected-full-seed0-planner":
+            assert argv[argv.index("--host-ram-gib") + 1] == "16.0"
+            assert argv[argv.index("--cpu-workers") + 1] == "4"
+            evidence = _resource_evidence(tmp_path)
+            assert argv[argv.index("--resource-evidence") + 1] == evidence["path"]
+            assert argv[argv.index("--resource-evidence-sha256") + 1] == evidence["sha256"]
             queue = Path(argv[argv.index("--queue-out") + 1])
             _file(queue, yaml.safe_dump({"launch_authorized": True, "jobs": [{"name": "synthetic"}]}))
             _file(Path(argv[argv.index("--proof-out") + 1]), "{}")

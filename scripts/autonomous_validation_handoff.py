@@ -2,8 +2,11 @@
 """Prepare or run the authenticated sweep-to-validation handoff.
 
 ``prepare`` is results-blind and launches nothing. ``run`` watches one exact
-mixed-recovery controller, co-schedules only validation probability replay in
-the unused registered slots, finalizes validation metadata, adds the later
+mixed-recovery controller and waits for every source job to become durably
+complete before launching validation probability replay.  This completion
+barrier is required because a source controller started without a reciprocal
+coexistence plan cannot classify later replay workers as project-owned.  The
+controller then finalizes validation metadata, adds the later
 DRUnet/RUnet/AlexNet/SegFormer replay wave when its immutable run cards exist,
 and prepares (but does not launch) selected full seed-0 training jobs.
 
@@ -14,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import subprocess
@@ -30,6 +34,97 @@ import run_queue_guarded as guarded
 
 PLAN_KIND = "autonomous_validation_handoff_plan"
 HEX40 = set("0123456789abcdef")
+RUNTIME_KEYS = {
+    "allowed_gpus", "max_jobs_per_gpu", "memory_fraction", "max_cpu_cores",
+    "max_project_ram_gib", "min_disk_free_fraction", "min_free_mib",
+    "foreign_process_mib", "min_available_ram_gib",
+}
+
+
+def _validated_file_identity(value: Any, description: str) -> Dict[str, str]:
+    """Validate one immutable private evidence file identity."""
+    if not isinstance(value, dict) or set(value) != {"path", "sha256"}:
+        raise ValueError(f"{description} must provide path and SHA-256")
+    path = Path(str(value.get("path", "")))
+    digest = str(value.get("sha256", ""))
+    if (
+        not path.is_absolute()
+        or not path.is_file()
+        or len(digest) != 64
+        or any(character not in "0123456789abcdef" for character in digest)
+        or sha256_file(path) != digest
+    ):
+        raise ValueError(f"{description} identity changed")
+    return {"path": str(path), "sha256": digest}
+
+
+def _validated_selected_full_resources(value: Any) -> Dict[str, Any]:
+    """Validate measured full-training reservations and their evidence."""
+    expected = {
+        "host_ram_gib_per_job", "cpu_workers_per_job", "reservation_evidence",
+    }
+    if not isinstance(value, dict) or set(value) != expected:
+        raise ValueError("selected full-job resources must provide the exact key set")
+    host_ram = value.get("host_ram_gib_per_job")
+    cpu_workers = value.get("cpu_workers_per_job")
+    if (
+        not isinstance(host_ram, (int, float))
+        or not math.isfinite(float(host_ram))
+        or float(host_ram) <= 0.0
+        or type(cpu_workers) is not int
+        or cpu_workers <= 0
+    ):
+        raise ValueError("selected full-job resources must be explicit and positive")
+    return {
+        "host_ram_gib_per_job": float(host_ram),
+        "cpu_workers_per_job": int(cpu_workers),
+        "reservation_evidence": _validated_file_identity(
+            value.get("reservation_evidence"), "selected full-job resource evidence"
+        ),
+    }
+
+
+def _validated_runtime_policy(value: Any) -> Dict[str, Any]:
+    """Validate the explicit private launcher policy without public defaults."""
+    if not isinstance(value, dict) or set(value) != RUNTIME_KEYS:
+        raise ValueError("handoff runtime policy must provide the exact key set")
+    gpus = value.get("allowed_gpus")
+    integer_keys = {
+        "max_jobs_per_gpu", "max_cpu_cores", "min_free_mib",
+        "foreign_process_mib",
+    }
+    numeric_keys = {
+        "memory_fraction", "max_project_ram_gib", "min_disk_free_fraction",
+        "min_available_ram_gib",
+    }
+    if (
+        not isinstance(gpus, list)
+        or not gpus
+        or any(type(item) is not int or item < 0 for item in gpus)
+        or len(gpus) != len(set(gpus))
+        or any(type(value.get(key)) is not int or value[key] <= 0 for key in integer_keys)
+        or any(
+            not isinstance(value.get(key), (int, float))
+            or not math.isfinite(float(value[key]))
+            or float(value[key]) <= 0.0
+            for key in numeric_keys
+        )
+        or not 0.0 < float(value["memory_fraction"]) <= 1.0
+        or not 0.0 < float(value["min_disk_free_fraction"]) < 1.0
+        or int(value["max_jobs_per_gpu"]) * float(value["memory_fraction"]) > 1.0
+    ):
+        raise ValueError("handoff runtime policy contains invalid resource values")
+    return {
+        "allowed_gpus": list(gpus),
+        "max_jobs_per_gpu": int(value["max_jobs_per_gpu"]),
+        "memory_fraction": float(value["memory_fraction"]),
+        "max_cpu_cores": int(value["max_cpu_cores"]),
+        "max_project_ram_gib": float(value["max_project_ram_gib"]),
+        "min_disk_free_fraction": float(value["min_disk_free_fraction"]),
+        "min_free_mib": int(value["min_free_mib"]),
+        "foreign_process_mib": int(value["foreign_process_mib"]),
+        "min_available_ram_gib": float(value["min_available_ram_gib"]),
+    }
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -69,24 +164,8 @@ def _process_argv_sha256(pid: int) -> Optional[str]:
     return canonical_sha256(argv) if argv else None
 
 
-def _project_root(root: Path) -> Path:
-    """Resolve either the standalone release layout or its source subdirectory."""
-    root = root.resolve()
-    candidates = (root, root / "segbench")
-    matches = [
-        candidate
-        for candidate in candidates
-        if (candidate / "scripts" / "autonomous_validation_handoff.py").is_file()
-        and (candidate / "segbench" / "artifact_identity.py").is_file()
-    ]
-    if len(matches) != 1:
-        raise ValueError("code root does not resolve to exactly one benchmark project")
-    return matches[0]
-
-
 def _code_identity(root: Path) -> Dict[str, Any]:
     root = root.resolve()
-    project = _project_root(root)
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
     tree = subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"], cwd=root, text=True).strip()
     dirty = subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=all"], cwd=root, text=True).strip()
@@ -101,15 +180,9 @@ def _code_identity(root: Path) -> Dict[str, Any]:
         "scripts/finalize_validation_replay_selection.py",
         "scripts/prepare_selected_seed0_queue.py",
     ):
-        path = project / relative
+        path = root / "segbench" / relative
         files[relative] = sha256_file(path)
-    return {
-        "root": str(root),
-        "project_root": str(project),
-        "git_commit": commit,
-        "git_tree": tree,
-        "files_sha256": files,
-    }
+    return {"root": str(root), "git_commit": commit, "git_tree": tree, "files_sha256": files}
 
 
 def _verify_code(value: Mapping[str, Any]) -> Path:
@@ -117,47 +190,43 @@ def _verify_code(value: Mapping[str, Any]) -> Path:
     observed = _code_identity(root)
     if observed != value:
         raise ValueError("handoff code identity changed")
-    return Path(str(observed["project_root"]))
-
-
-def _runtime_policy(plan: Mapping[str, Any]) -> Dict[str, Any]:
-    """Validate the environment-specific policy supplied by the operator."""
-    value = plan.get("runtime_policy")
-    if not isinstance(value, dict):
-        raise ValueError("handoff runtime policy is absent")
-    gpus = value.get("allowed_gpu_indices")
-    checks = (
-        isinstance(gpus, list) and bool(gpus)
-        and all(type(item) is int and item >= 0 for item in gpus)
-        and len(gpus) == len(set(gpus)),
-        type(value.get("max_jobs_per_gpu")) is int and value["max_jobs_per_gpu"] > 0,
-        type(value.get("min_free_mib")) is int and value["min_free_mib"] > 0,
-        type(value.get("foreign_process_mib")) is int and value["foreign_process_mib"] >= 0,
-        isinstance(value.get("memory_fraction"), (int, float))
-        and 0 < float(value["memory_fraction"]) <= 1,
-        isinstance(value.get("min_disk_free_fraction"), (int, float))
-        and 0 < float(value["min_disk_free_fraction"]) < 1,
-        isinstance(value.get("max_project_ram_gib"), (int, float))
-        and float(value["max_project_ram_gib"]) > 0,
-        type(value.get("max_cpu_cores")) is int and value["max_cpu_cores"] > 0,
-        isinstance(value.get("min_available_ram_gib"), (int, float))
-        and float(value["min_available_ram_gib"]) >= 0,
-        isinstance(value.get("seed0_host_ram_gib"), (int, float))
-        and float(value["seed0_host_ram_gib"]) > 0,
-        type(value.get("seed0_cpu_workers")) is int
-        and value["seed0_cpu_workers"] > 0,
-    )
-    if not all(checks):
-        raise ValueError("handoff runtime policy is malformed")
-    return dict(value)
+    return root
 
 
 def prepare(spec_path: Path, code_root: Path, out: Path, proof_out: Path) -> Dict[str, Any]:
     spec = _read(spec_path, "handoff specification")
     if spec.get("schema_version") != 1 or spec.get("kind") != "autonomous_validation_handoff_spec":
         raise ValueError("handoff specification kind changed")
+    if spec.get("source_completion_required") is not True:
+        raise ValueError("handoff must require durable source completion")
+    runtime_policy = _validated_runtime_policy(spec.get("runtime_policy"))
+    selected_resources = _validated_selected_full_resources(
+        spec.get("selected_full_resources")
+    )
+    slots = len(runtime_policy["allowed_gpus"]) * runtime_policy["max_jobs_per_gpu"]
+    if (
+        slots * float(selected_resources["host_ram_gib_per_job"])
+        > runtime_policy["max_project_ram_gib"]
+        or slots * int(selected_resources["cpu_workers_per_job"])
+        > runtime_policy["max_cpu_cores"]
+    ):
+        raise ValueError("selected full-job reservations cannot fill all registered slots")
+    late_candidates = spec.get("late_candidates")
+    if not isinstance(late_candidates, list) or not late_candidates:
+        raise ValueError("late replay candidates are absent")
+    for candidate in late_candidates:
+        if (
+            not isinstance(candidate, dict)
+            or not isinstance(candidate.get("host_ram_gib"), (int, float))
+            or not math.isfinite(float(candidate["host_ram_gib"]))
+            or float(candidate["host_ram_gib"]) <= 0.0
+            or type(candidate.get("cpu_workers")) is not int
+            or candidate["cpu_workers"] < 0
+        ):
+            raise ValueError(
+                "late replay candidate RAM must be positive and workers non-negative"
+            )
     code = _code_identity(code_root)
-    _runtime_policy(spec)
     transition = spec.get("transition_controller")
     if not isinstance(transition, dict):
         raise ValueError("transition controller identity is absent")
@@ -203,6 +272,8 @@ def prepare(spec_path: Path, code_root: Path, out: Path, proof_out: Path) -> Dic
     plan.update(
         kind=PLAN_KIND,
         code=code,
+        runtime_policy=runtime_policy,
+        selected_full_resources=selected_resources,
         specification={"path": str(spec_path), "sha256": sha256_file(spec_path)},
         initial_replay_plan_sha256=sha256_file(initial_plan),
         initial_replay_queue_sha256=sha256_file(initial_queue),
@@ -222,6 +293,7 @@ def prepare(spec_path: Path, code_root: Path, out: Path, proof_out: Path) -> Dic
         "source_controller_authenticated": True,
         "source_controller_phase": accepted_argv[observed_argv],
         "source_controller_argv_sha256": observed_argv,
+        "source_completion_required": True,
         "test_or_heldout_opened": False,
         "gpu_launched": False,
     }
@@ -263,7 +335,7 @@ def _completed_source_controller_identity(
     if not isinstance(payload, dict):
         raise ValueError("completed source queue must be an object")
     cap = payload.get("runtime_policy", {}).get("max_jobs_per_gpu")
-    if type(cap) is not int or cap <= 0:
+    if cap not in {1, 2, 3}:
         raise ValueError("completed source queue lacks its registered GPU cap")
     matches = []
     for item in transition["allowed_mixed_controller_argv"]:
@@ -295,6 +367,25 @@ def _stable_state(path: Path) -> Dict[str, Any]:
     raise RuntimeError("source ledger did not yield a stable snapshot")
 
 
+def _source_completion_gate(state: Mapping[str, Any]) -> bool:
+    """Return true only when every declared source job is durably completed.
+
+    Running, pending, retrying, and preempted states all wait.  A failed source
+    is terminal.  This deliberately forbids asymmetric co-scheduling with a
+    source controller that was not launched with reciprocal worker ownership.
+    """
+    jobs = state.get("jobs")
+    if not isinstance(jobs, Mapping) or not jobs:
+        return False
+    statuses = [
+        item.get("status") if isinstance(item, Mapping) else None
+        for item in jobs.values()
+    ]
+    if any(status == "failed" for status in statuses):
+        raise RuntimeError("source mixed recovery contains a failed job")
+    return all(status == "completed" for status in statuses)
+
+
 def _wait_for_source(plan: Mapping[str, Any]) -> tuple[Dict[str, Any], list[guarded.GuardedJob]]:
     queue_path = Path(plan["source_mixed_queue"])
     state_path = Path(plan["source_mixed_state"])
@@ -306,27 +397,27 @@ def _wait_for_source(plan: Mapping[str, Any]) -> tuple[Dict[str, Any], list[guar
             state = _stable_state(state_path)
             if state.get("queue_sha256") != sha256_file(queue_path):
                 raise ValueError("source mixed ledger/queue binding changed")
-            statuses = {name: item.get("status") for name, item in state.get("jobs", {}).items()}
-            if any(value == "failed" for value in statuses.values()):
-                raise RuntimeError("source mixed recovery contains a failed job")
-            if statuses and all(value in {"running", "completed"} for value in statuses.values()):
-                if all(value == "completed" for value in statuses.values()):
-                    # Authenticate every durable completion before accepting an
-                    # expected controller exit. The read-only coexistence guard
-                    # rechecks these identities on every scheduling cycle.
-                    by_name = {job.name: job for job in jobs}
-                    for name, entry in state["jobs"].items():
-                        job = by_name[name]
-                        if (
-                            not job.completion_artifact.is_file()
-                            or entry.get("artifact_sha256")
-                            != sha256_file(job.completion_artifact)
-                        ):
-                            raise ValueError(f"{name}: completed source artifact changed")
-                    controller = _completed_source_controller_identity(plan, queue_path)
-                else:
-                    controller = _controller_identity(plan)
+            if _source_completion_gate(state):
+                # Authenticate every durable completion before accepting an
+                # expected controller exit. Validation is never launched while
+                # any source worker remains running.
+                by_name = {job.name: job for job in jobs}
+                if set(state["jobs"]) != set(by_name):
+                    raise ValueError("source mixed ledger job universe changed")
+                for name, entry in state["jobs"].items():
+                    job = by_name[name]
+                    if (
+                        not job.completion_artifact.is_file()
+                        or entry.get("artifact_sha256")
+                        != sha256_file(job.completion_artifact)
+                    ):
+                        raise ValueError(f"{name}: completed source artifact changed")
+                controller = _completed_source_controller_identity(plan, queue_path)
                 return controller, jobs
+            # An incomplete source must still have its exact authenticated
+            # controller.  Fail immediately instead of waiting forever after
+            # an unexpected controller exit or PID reuse.
+            _controller_identity(plan)
         time.sleep(float(plan.get("poll_seconds", 10)))
     raise TimeoutError("timed out waiting for a stable mixed recovery queue")
 
@@ -339,17 +430,17 @@ def _coexistence_plan(
     source_proof = Path(plan["source_mixed_proof"])
     argv = list(controller["argv"])
     max_per_gpu = int(argv[argv.index("--max-per-gpu") + 1])
-    policy = _runtime_policy(plan)
+    policy = _validated_runtime_policy(plan.get("runtime_policy"))
     value = {
         "schema_version": 1,
         "kind": "guarded_queue_coexisting_controller_plan",
         "target_queue_sha256": sha256_file(target_queue),
-        "allowed_gpus": list(policy["allowed_gpu_indices"]),
-        "max_jobs_per_gpu": int(policy["max_jobs_per_gpu"]),
+        "allowed_gpus": policy["allowed_gpus"],
+        "max_jobs_per_gpu": policy["max_jobs_per_gpu"],
         "source_max_jobs_per_gpu": max_per_gpu,
-        "max_project_ram_gib": float(policy["max_project_ram_gib"]),
-        "max_cpu_cores": int(policy["max_cpu_cores"]),
-        "memory_fraction": float(policy["memory_fraction"]),
+        "max_project_ram_gib": policy["max_project_ram_gib"],
+        "max_cpu_cores": policy["max_cpu_cores"],
+        "memory_fraction": policy["memory_fraction"],
         "read_only_source": True,
         "may_signal_source": False,
         "may_write_source_ledger": False,
@@ -393,18 +484,18 @@ def _queue_has_jobs(path: Path) -> bool:
 
 
 def _guard_argv(plan: Mapping[str, Any], queue: Path, state: Path, coexist: Path) -> list[str]:
-    root = Path(str(plan["code"]["project_root"]))
-    policy = _runtime_policy(plan)
-    gpu_csv = ",".join(str(item) for item in policy["allowed_gpu_indices"])
+    root = Path(plan["code"]["root"])
+    policy = _validated_runtime_policy(plan.get("runtime_policy"))
     return [
-        str(plan["python"]), str(root / "scripts/run_queue_guarded.py"),
+        str(plan["python"]), str(root / "segbench/scripts/run_queue_guarded.py"),
         "--jobs", str(queue), "--results", str(plan["restricted_root"]),
-        "--state", str(state), "--gpus", gpu_csv,
+        "--state", str(state), "--gpus",
+        ",".join(str(item) for item in policy["allowed_gpus"]),
         "--max-per-gpu", str(policy["max_jobs_per_gpu"]),
         "--min-free-mib", str(policy["min_free_mib"]),
         "--foreign-process-mib", str(policy["foreign_process_mib"]),
         "--memory-fraction", str(policy["memory_fraction"]),
-        "--poll-seconds", str(plan.get("poll_seconds", 10)),
+        "--poll-seconds", str(plan["poll_seconds"]),
         "--min-disk-free-fraction", str(policy["min_disk_free_fraction"]),
         "--max-project-ram-gib", str(policy["max_project_ram_gib"]),
         "--max-cpu-cores", str(policy["max_cpu_cores"]),
@@ -432,8 +523,8 @@ def _late_inventory(plan: Mapping[str, Any], output: Path) -> None:
                 "seed": 0, "config": str(item[f"config_{slug}"]),
                 "checkpoint": str(run_dir / "best.pt"),
                 "training_card": str(run_dir / "run.json"),
-                "host_ram_gib": float(item.get("host_ram_gib", 24)),
-                "cpu_workers": 0,
+                "host_ram_gib": float(item["host_ram_gib"]),
+                "cpu_workers": int(item["cpu_workers"]),
             })
     value = {
         "schema_version": 1,
@@ -476,9 +567,16 @@ def run(plan_path: Path, expected_sha: str) -> Dict[str, Any]:
     if sha256_file(plan_path) != expected_sha:
         raise ValueError("handoff plan SHA-256 changed")
     plan = _read(plan_path, "handoff plan")
-    if plan.get("kind") != PLAN_KIND or plan.get("test_or_heldout_opened") is not False:
+    if (
+        plan.get("kind") != PLAN_KIND
+        or plan.get("source_completion_required") is not True
+        or plan.get("test_or_heldout_opened") is not False
+    ):
         raise ValueError("handoff plan contract changed")
     root = _verify_code(plan["code"])
+    selected_resources = _validated_selected_full_resources(
+        plan.get("selected_full_resources")
+    )
     controller, source_jobs = _wait_for_source(plan)
     handoff = Path(plan["handoff_root"])
     log = handoff / "handoff.log"
@@ -492,7 +590,7 @@ def run(plan_path: Path, expected_sha: str) -> Dict[str, Any]:
     selections = handoff / "initial_selections"
     deferred = handoff / "initial_deferred_queue.yaml"
     finalizer = [
-        str(plan["python"]), str(root / "scripts/finalize_validation_replay_selection.py"),
+        str(plan["python"]), str(root / "segbench/scripts/finalize_validation_replay_selection.py"),
         "--plan", str(plan["initial_replay_plan"]), "--plan-sha256", str(plan["initial_replay_plan_sha256"]),
         "--out-dir", str(selections), "--eligible-queue-out", str(deferred),
     ]
@@ -512,7 +610,7 @@ def run(plan_path: Path, expected_sha: str) -> Dict[str, Any]:
     late_proof = handoff / "late_replay_preparation.json"
     _late_inventory(plan, late_inventory)
     compiler = [
-        str(plan["python"]), str(root / "scripts/prepare_validation_probability_replays.py"),
+        str(plan["python"]), str(root / "segbench/scripts/prepare_validation_probability_replays.py"),
         "--candidates", str(late_inventory), "--code-root", str(root),
         "--out-plan", str(late_plan), "--out-queue", str(late_queue),
         "--proof-out", str(late_proof),
@@ -526,7 +624,7 @@ def run(plan_path: Path, expected_sha: str) -> Dict[str, Any]:
     )
     late_selections = handoff / "late_selections"
     _run_child([
-        str(plan["python"]), str(root / "scripts/finalize_validation_replay_selection.py"),
+        str(plan["python"]), str(root / "segbench/scripts/finalize_validation_replay_selection.py"),
         "--plan", str(late_plan), "--plan-sha256", sha256_file(late_plan),
         "--out-dir", str(late_selections),
     ], cwd=root, label="late-validation-finalizer", log=log)
@@ -534,10 +632,10 @@ def run(plan_path: Path, expected_sha: str) -> Dict[str, Any]:
     seed0_queue = handoff / "selected_full_seed0_queue.yaml"
     seed0_proof = handoff / "selected_full_seed0_preparation.json"
     builder = [
-        str(plan["python"]), str(root / "scripts/prepare_selected_seed0_queue.py"),
+        str(plan["python"]), str(root / "segbench/scripts/prepare_selected_seed0_queue.py"),
         "--selection-summary", str(selections / "summary.json"),
         "--selection-summary", str(late_selections / "summary.json"),
-        "--code-root", str(root), "--python", str(plan["python"]),
+        "--code-root", str(root / "segbench"), "--python", str(plan["python"]),
         "--manifest", str(plan["manifest"]), "--splits", str(plan["splits"]),
         "--cache-dir", str(plan["cache_dir"]),
         "--threshold-amendment", str(plan["training_threshold_amendment"]),
@@ -545,8 +643,14 @@ def run(plan_path: Path, expected_sha: str) -> Dict[str, Any]:
         "--config-out", str(handoff / "selected_full_configs"),
         "--queue-out", str(seed0_queue), "--proof-out", str(seed0_proof),
         "--segformer-dir", str(plan["segformer_dir"]),
-        "--job-host-ram-gib", str(_runtime_policy(plan)["seed0_host_ram_gib"]),
-        "--job-cpu-workers", str(_runtime_policy(plan)["seed0_cpu_workers"]),
+        "--host-ram-gib", str(selected_resources["host_ram_gib_per_job"]),
+        "--cpu-workers", str(selected_resources["cpu_workers_per_job"]),
+        "--resource-evidence", str(
+            selected_resources["reservation_evidence"]["path"]
+        ),
+        "--resource-evidence-sha256", str(
+            selected_resources["reservation_evidence"]["sha256"]
+        ),
     ]
     _run_child(builder, cwd=root, label="selected-full-seed0-planner", log=log)
     result = {

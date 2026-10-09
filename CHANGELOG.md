@@ -16,3 +16,8 @@
   append-only one-time seed scoring/import workflow.
 - Added the receipt-authenticated private-demo backend, in-memory upload path,
   five-tab review UI, deployment runbook, and synthetic security tests.
+- Bound validation and full seed-zero handoffs to explicit runtime policies,
+  measured resource-reservation receipts, and a durable source-completion
+  barrier.
+- Added a fail-closed Dataset-1-to-B1 inference and one-time hull-scoring
+  workflow that keeps held-out minutiae and hull data outside inference.

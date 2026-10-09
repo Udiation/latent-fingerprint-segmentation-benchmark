@@ -14,6 +14,7 @@
     "readme_no_claimed_partial_result": true,
     "readme_ten_sections": true,
     "required_repository_structure": true,
+    "seed0_handoff_is_runtime_policy_bound": true,
     "site_exactly_twelve_method_cards": true,
     "site_hull_explainer": true,
     "site_no_tracking_or_external_analytics": true,
@@ -21,7 +22,8 @@
     "synthetic_assets_have_receipt": true,
     "synthetic_demo_is_receipt_gated": true,
     "twelve_review_method_entries": true,
-    "validation_handoff_is_runtime_policy_bound": true
+    "validation_handoff_is_runtime_policy_bound": true,
+    "validation_handoff_requires_source_completion": true
   },
   "method_cards": 12,
   "note": "Result-dependent metrics, model-derived synthetic predictions, and publication remain gated.",

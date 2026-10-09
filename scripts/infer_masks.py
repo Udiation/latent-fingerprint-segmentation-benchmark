@@ -44,6 +44,7 @@ from segbench.deep_utils import (
 )
 from segbench import probability_artifacts
 from segbench import preprocess_cache
+from segbench import b1_crossdomain
 
 
 SAFE_IMAGE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
@@ -81,8 +82,17 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         type=Path,
         help="exact operator-authorized threshold-policy amendment",
     )
+    parser.add_argument(
+        "--cross-domain-authorization",
+        type=Path,
+        help=(
+            "immutable authorization for reusing a Dataset-1 validation selector "
+            "on the complete ground-truth-blind SD302g exemplar test manifest"
+        ),
+    )
     parser.add_argument("--allow-unamended-debug", action="store_true")
     parser.add_argument("--cache-dir", type=Path)
+    parser.add_argument("--cache-compatibility-receipt", type=Path)
     parser.add_argument("--timing-out", required=True, type=Path)
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"))
     parser.add_argument("--memory-fraction", type=float)
@@ -321,6 +331,7 @@ def _threshold_from_receipt(
     args: argparse.Namespace,
     config: Mapping[str, Any],
     checkpoint: Mapping[str, Any],
+    cross_domain_authorization: Optional[Mapping[str, Any]] = None,
 ) -> Tuple[float, Optional[str]]:
     amendment_path = getattr(args, "threshold_amendment", None)
     amendment_sha256 = (
@@ -348,6 +359,11 @@ def _threshold_from_receipt(
             )
         return threshold, None
     receipt = json.loads(args.threshold_receipt.read_text(encoding="utf-8"))
+    selector_manifest_sha256 = (
+        str(cross_domain_authorization["model"]["selector_source_manifest_sha256"])
+        if cross_domain_authorization is not None
+        else file_digest(args.manifest)
+    )
     expected = {
         "schema_version": 1,
         "kind": "expanded_validation_threshold_selector_receipt",
@@ -356,7 +372,7 @@ def _threshold_from_receipt(
         "selection_split": "val",
         "checkpoint_sha256": file_digest(args.checkpoint),
         "source_config_sha256": file_digest(args.config),
-        "manifest_sha256": file_digest(args.manifest),
+        "manifest_sha256": selector_manifest_sha256,
         "split_sha256": file_digest(args.splits),
         "threshold_amendment_sha256": amendment_sha256,
         "amendment_sha256": amendment_sha256,
@@ -522,9 +538,42 @@ def infer(
     normalization = checkpoint.get("normalization")
     if not isinstance(normalization, dict) or normalization.get("source_split") != "train":
         raise ValueError("checkpoint lacks training-only normalization metadata")
-    threshold, threshold_receipt_sha256 = _threshold_from_receipt(
-        args, config, checkpoint
+    cross_domain_authorization = None
+    cross_domain_authorization_sha256 = None
+    cross_domain_authorization_path = getattr(
+        args, "cross_domain_authorization", None
     )
+    if cross_domain_authorization_path is not None:
+        if args.threshold_receipt is None or args.threshold_amendment is None:
+            raise ValueError(
+                "cross-domain inference requires the frozen selector and amendment"
+            )
+        cross_domain_authorization, cross_domain_authorization_sha256 = (
+            b1_crossdomain.validate_for_inference(
+                cross_domain_authorization_path,
+                method=str(config["method"]),
+                task=str(config["task"]),
+                seed=int(config["seed"]),
+                config_path=args.config,
+                checkpoint_path=args.checkpoint,
+                selector_path=args.threshold_receipt,
+                amendment_path=args.threshold_amendment,
+                target_manifest_path=args.manifest,
+                split_path=args.splits,
+                subset=args.subset,
+                split=args.split,
+                limit=int(args.limit),
+            )
+        )
+    threshold, threshold_receipt_sha256 = _threshold_from_receipt(
+        args, config, checkpoint, cross_domain_authorization
+    )
+    if cross_domain_authorization is not None:
+        authorized_threshold = float(
+            cross_domain_authorization["model"]["selected_threshold"]
+        )
+        if threshold != authorized_threshold:
+            raise ValueError("B1 authorization selected threshold changed")
     model = build_model(str(config["method"]), config["model"])
     model.load_state_dict(checkpoint["model_state"], strict=True)
     model.to(device).eval()
@@ -546,6 +595,7 @@ def infer(
     )
     records = rows.to_dict("records")
     cache_receipt_sha256 = None
+    cache_compatibility_receipt_sha256 = None
     if args.cache_dir is not None:
         preprocess_cache.load_receipt(
             args.cache_dir,
@@ -554,8 +604,13 @@ def infer(
             mask_columns=[str(data_config["mask_column"])],
             required_ids=[str(row["image_id"]) for row in records],
             verify_artifact_hashes=True,
+            implementation_compatibility_receipt=args.cache_compatibility_receipt,
         )
         cache_receipt_sha256 = file_digest(args.cache_dir / "receipt.json")
+        if args.cache_compatibility_receipt is not None:
+            cache_compatibility_receipt_sha256 = file_digest(
+                args.cache_compatibility_receipt
+            )
     # Cached arrays accelerate training/validation and non-timed exports.  Held-out
     # paper timing always retains decode + resample semantics from the frozen protocol.
     inference_cache_dir = args.cache_dir if args.split != "test" else None
@@ -580,11 +635,13 @@ def infer(
         "threshold_receipt_sha256": threshold_receipt_sha256,
         "selector_receipt_sha256": threshold_receipt_sha256,
         "threshold_amendment_sha256": threshold_amendment_sha256,
+        "cross_domain_authorization_sha256": cross_domain_authorization_sha256,
         "source_config_sha256": file_digest(args.config),
         "checkpoint_sha256": file_digest(args.checkpoint),
         "manifest_sha256": file_digest(args.manifest),
         "split_sha256": file_digest(args.splits),
         "preprocess_cache_receipt_sha256": cache_receipt_sha256,
+        "preprocess_cache_compatibility_receipt_sha256": cache_compatibility_receipt_sha256,
         "mc_dropout_samples": int(args.mc_dropout_samples),
         "mc_limit": int(args.mc_limit),
     }
@@ -840,6 +897,7 @@ def infer(
         "selected_validation_threshold": threshold,
         "threshold_receipt_sha256": threshold_receipt_sha256,
         "threshold_amendment_sha256": threshold_amendment_sha256,
+        "cross_domain_authorization_sha256": cross_domain_authorization_sha256,
         "threshold_candidates": sorted(
             float(value)
             for value in (
@@ -859,6 +917,24 @@ def infer(
             args.split != "test" or threshold_receipt_sha256 is not None
         ),
         "target_ppi": float(data_config["target_ppi"]),
+        "prediction_grid": {
+            "mask_unit": "full_image_pixels",
+            "target_ppi": float(data_config["target_ppi"]),
+            "mask_shape_source": "manifest_canonical_target_grid",
+            "probability_unit": (
+                "full_image_pixels" if config["task"] == "pixel" else "blocks"
+            ),
+            "patch_masks_reconstructed_before_write": config["task"] == "patch",
+            "patch_reconstruction": (
+                {
+                    "block_size": int(data_config["block_size"]),
+                    "order": "threshold_then_shared_block_postprocess_then_expand_and_crop",
+                    "min_component_blocks": int(config["inference"]["min_component_blocks"]),
+                }
+                if config["task"] == "patch"
+                else None
+            ),
+        },
         "device": device.type.upper(),
         "warmup_images": args.warmup,
         "written": written,
@@ -875,6 +951,7 @@ def infer(
         "mask_derivation_verification": mask_derivation_verification,
         "probability_maps_required": True,
         "preprocess_cache_receipt_sha256": cache_receipt_sha256,
+        "preprocess_cache_compatibility_receipt_sha256": cache_compatibility_receipt_sha256,
         "cache_used_for_image_decode": inference_cache_dir is not None,
         "paper_timing_preprocess": (
             "on_the_fly_decode_and_resample" if args.split == "test" else "not_paper_timing"
@@ -893,6 +970,7 @@ def infer(
             "split_sha256": file_digest(args.splits),
             "selector_receipt_sha256": threshold_receipt_sha256,
             "amendment_sha256": threshold_amendment_sha256,
+            "cross_domain_authorization_sha256": cross_domain_authorization_sha256,
         },
         "debug_limited": bool(args.limit or args.allow_unamended_debug),
         "preempted": preempted,

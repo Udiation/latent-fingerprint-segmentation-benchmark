@@ -1,16 +1,16 @@
 # Autonomous validation-only handoff runbook
 
-This controller fills unused registered slots during the authenticated
-AlexNet/SegFormer mixed-recovery queue, then completes the frozen validation
-probability replays. It never opens the test split and never launches the
-selected full seed-0 queue it prepares.
+This controller waits for the authenticated AlexNet/SegFormer mixed-recovery
+queue to complete, then runs the frozen validation-probability replays. It
+never opens the test split and never launches the selected full seed-0 queue it
+prepares.
 
 ## Preparation
 
 Preparation is results-blind and launches nothing:
 
 ```bash
-python scripts/autonomous_validation_handoff.py prepare \
+python segbench/scripts/autonomous_validation_handoff.py prepare \
   --spec /absolute/path/handoff_spec.yaml \
   --code-root /absolute/path/clean/controller/worktree \
   --out /absolute/path/handoff_plan.json \
@@ -21,30 +21,40 @@ The specification must bind the transition watcher by PID, process start
 ticks, and argv SHA-256, plus every permitted post-`exec` mixed-controller argv.
 Preparation accepts only that watcher or one of those exact post-`exec`
 commands. It also binds the immutable initial validation replay plan and queue.
-The specification supplies an explicit `runtime_policy`; no device index,
-memory reservation, CPU limit, or disk guard is embedded in public code. The
-policy contains `allowed_gpu_indices`, `max_jobs_per_gpu`, `min_free_mib`,
-`foreign_process_mib`, `memory_fraction`, `min_disk_free_fraction`,
-`max_project_ram_gib`, `max_cpu_cores`, `min_available_ram_gib`,
-`seed0_host_ram_gib`, and `seed0_cpu_workers`.
+The restricted specification must provide, without defaults, the complete
+guarded-launch runtime policy and the selected full-job RAM/worker reservation.
+The full-job reservation includes the absolute path and SHA-256 of its private
+measurement receipt; preparation and both downstream handoffs authenticate
+that evidence without copying private measurements into committed code. Every
+late replay candidate likewise declares its RAM and worker reservation. A
+serial replay with no DataLoader or process-pool workers declares zero workers;
+full training declares the configured DataLoader-worker count.
+Preparation rejects a policy whose selected full-job reservations cannot fill
+all declared device slots within the aggregate CPU and RAM caps.
 
 ## Launch after review
 
 Use the plan digest printed in the preparation receipt:
 
 ```bash
-nice -n 10 python scripts/autonomous_validation_handoff.py run \
+nice -n 10 python segbench/scripts/autonomous_validation_handoff.py run \
   --plan /absolute/path/handoff_plan.json \
   --plan-sha256 PLAN_SHA256
 ```
 
 Run this in its own detached `tmux` session and write stdout/stderr to the
-restricted log directory. Before every launch decision, the guarded replay
-queue authenticates the source controller and workers and counts them toward
-the GPU-slot, CPU, RAM, memory-fraction, and disk guards. It cannot signal the
-source or write its ledger. If the source queue has already completed, the
-controller accepts its expected exit only after authenticating the full source
-ledger and every declared completion artifact.
+restricted log directory. The guarded replay queue launches nothing while a
+source worker is running. It accepts the source controller's expected exit
+only after all source jobs are complete and it has authenticated the full
+source ledger and every declared completion artifact.
+
+This source-completion barrier is intentional. The recovery controller was not
+launched with reciprocal ownership of replay workers, so concurrent replay
+could make a valid replay process appear foreign to the recovery queue and
+trigger cooperative source checkpointing. The rejected coexistence plan never
+launched a replay worker. Once the barrier passes, the guarded replay queue
+applies the ordinary process-slot, CPU, RAM, memory-fraction, and disk guards.
+It cannot signal the source or write its ledger.
 
 The controller performs these append-only actions:
 
