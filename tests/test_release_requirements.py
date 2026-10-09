@@ -78,6 +78,7 @@ def test_browser_features_are_wired_to_embedded_aggregate_payload() -> None:
     assert "payload.results" in javascript
     assert "payload.statistics" in javascript
     assert "sig-marker" in javascript
+    assert 'row.family !== "Reference"' in javascript
     assert 'aria-label="High to low"' in html
     assert 'setAttribute("aria-label", label)' in javascript
 

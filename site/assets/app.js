@@ -174,7 +174,9 @@
 
   function renderPareto() {
     const box = document.querySelector("#pareto");
-    const rows = filteredRows().filter(row => row.dice !== "" && row.ms_per_img !== "");
+    const rows = filteredRows().filter(row => (
+      row.family !== "Reference" && row.dice !== "" && row.ms_per_img !== ""
+    ));
     if (!rows.length) {
       box.innerHTML = '<p class="pending">Pareto points pending final aggregate results.</p>';
       return;
@@ -239,7 +241,9 @@
       return;
     }
     const facts = [];
-    const tableA = complete.filter(row => row.table === "A" && row.dice !== "");
+    const tableA = complete.filter(row => (
+      row.table === "A" && row.family !== "Reference" && row.dice !== ""
+    ));
     if (tableA.length) {
       const dice = tableA.map(row => Number(row.dice));
       facts.push(`Table A Dice spans ${(Math.min(...dice) * 100).toFixed(2)}–${(Math.max(...dice) * 100).toFixed(2)} across ${tableA.length} complete aggregate rows.`);
