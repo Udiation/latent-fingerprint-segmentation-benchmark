@@ -18,6 +18,7 @@
   let activeMetric = "dice";
   let activeGroup = "all";
   let sortAscending = false;
+  const hullTables = new Set(["B1", "D"]);
 
   const lowerIsBetter = new Set(["mdr", "fdr", "ohf", "ms_per_img"]);
   const htmlEscape = value => String(value).replace(
@@ -31,6 +32,11 @@
     if (metric === "par") return number.toFixed(3);
     return (number * 100).toFixed(2);
   };
+  const fmtWithStd = (row, metric) => {
+    const mean = fmt(row[metric], metric);
+    const spread = row[`${metric}_seed_std`];
+    return spread === "" || spread === undefined ? mean : `${mean} ± ${fmt(spread, metric)}`;
+  };
 
   function filteredRows() {
     return resultRows.filter(row => row.table === activeTable && (
@@ -42,7 +48,7 @@
     const wrapper = document.createElement("div");
     wrapper.className = "metric-cell";
     const value = document.createElement("span");
-    value.textContent = fmt(row[activeMetric], activeMetric);
+    value.textContent = fmtWithStd(row, activeMetric);
     wrapper.appendChild(value);
     if (["dice", "hr"].includes(activeMetric) && row.ci_lower !== "" && row.ci_upper !== "") {
       const interval = document.createElement("span");
@@ -67,7 +73,7 @@
     const groups = [...new Set(resultRows
       .filter(row => row.table === activeTable && row.group && row.group !== "overall")
       .map(row => row.group))].sort();
-    wrapper.hidden = activeTable !== "B1" || groups.length === 0;
+    wrapper.hidden = !hullTables.has(activeTable) || groups.length === 0;
     select.innerHTML = '<option value="all">All groups</option>';
     for (const group of groups) {
       const option = document.createElement("option");
@@ -99,7 +105,7 @@
         ? `${row.approach} — ${row.group}` : row.approach;
       const cells = [
         label, row.family, row.status, null, row.seeds_completed || "—",
-        fmt(row.params_m, "params_m"), fmt(row.ms_per_img, "ms_per_img"),
+        fmtWithStd(row, "params_m"), fmtWithStd(row, "ms_per_img"),
         row.device || "—",
       ];
       cells.forEach((cell, index) => {
@@ -151,9 +157,9 @@
     document.querySelectorAll(".tab").forEach(item => item.setAttribute("aria-selected", "false"));
     button.setAttribute("aria-selected", "true"); activeTable = button.dataset.table;
     activeGroup = "all";
-    if (activeTable === "B1" && !["mc", "hr", "par", "ohf", "ms_per_img"].includes(activeMetric)) {
+    if (hullTables.has(activeTable) && !["mc", "hr", "par", "ohf", "ms_per_img"].includes(activeMetric)) {
       activeMetric = "hr"; document.querySelector("#metric").value = activeMetric;
-    } else if (activeTable !== "B1" && ["mc", "hr", "par", "ohf"].includes(activeMetric)) {
+    } else if (!hullTables.has(activeTable) && ["mc", "hr", "par", "ohf"].includes(activeMetric)) {
       activeMetric = "dice"; document.querySelector("#metric").value = activeMetric;
     }
     renderGroupFilter(); renderTable(); renderPareto(); renderSignificance();
