@@ -7,10 +7,14 @@ import hashlib
 from html import escape
 import json
 from pathlib import Path
-import re
 import shutil
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from segbench.synthetic_demo import validate_synthetic_demo_receipt
+
 SITE = ROOT / "site"
 RESULTS = ROOT / "results"
 SYNTHETIC = ROOT / "examples" / "synthetic"
@@ -180,14 +184,28 @@ def synthetic_examples() -> list[dict[str, object]]:
     if not receipt_path.is_file():
         return []
     receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    demo_index = validate_synthetic_demo_receipt(
+        SYNTHETIC,
+        receipt,
+        verify_files=True,
+        verify_builder=True,
+        builder_path=ROOT / "scripts" / "build_synthetic_site_demo.py",
+    )
     approved = _approved_assets(receipt)
-    image_paths = sorted(
-        path
-        for path, item in approved.items()
-        if item.get("role") == "example_image" and "finger_latent" in path
-    )[:3]
+    image_paths = []
+    for stem in demo_index["display_source_stems"]:
+        candidates = [
+            path
+            for path, item in approved.items()
+            if item.get("role") == "example_image" and Path(path).stem == stem
+        ]
+        if len(candidates) != 1:
+            raise ValueError(f"synthetic display source {stem} is not uniquely receipt-bound")
+        image_paths.append(candidates[0])
     destination = SITE / "assets" / "synthetic"
     destination.mkdir(parents=True, exist_ok=True)
+    for stale in destination.glob("prediction-*.png"):
+        stale.unlink()
     output: list[dict[str, object]] = []
     for index, image_rel in enumerate(image_paths, start=1):
         stem = Path(image_rel).stem
@@ -206,12 +224,27 @@ def synthetic_examples() -> list[dict[str, object]]:
         _copy_receipt_asset(approved, image_rel, source_destination)
         _copy_receipt_asset(approved, mask_rel, mask_destination)
         predictions: list[dict[str, str]] = []
-        for prediction_rel, item in approved.items():
-            if item.get("role") != "method_prediction" or item.get("source_stem") != stem:
+        methods: list[dict[str, str]] = []
+        for method, record in demo_index["methods"].items():
+            methods.append(
+                {
+                    "method": method,
+                    "label": str(record["label"]),
+                    "status": str(record["status"]),
+                    "reason": str(record.get("reason", "")),
+                }
+            )
+            matching = [
+                item
+                for item in demo_index["predictions"][method]
+                if item.get("source_stem") == stem
+            ]
+            if record["status"] != "complete":
                 continue
-            method = item.get("method", "")
-            if not re.fullmatch(r"[a-z][a-z0-9_]*", method):
-                raise ValueError("synthetic method prediction lacks a method key")
+            if len(matching) != 1:
+                raise ValueError(f"complete synthetic method {method} lacks source {stem}")
+            item = matching[0]
+            prediction_rel = str(item["path"])
             prediction_destination = destination / f"prediction-{index}-{method}.png"
             _copy_receipt_asset(approved, prediction_rel, prediction_destination)
             predictions.append(
@@ -228,6 +261,7 @@ def synthetic_examples() -> list[dict[str, object]]:
                 "image": f"assets/synthetic/{source_destination.name}",
                 "mask": f"assets/synthetic/{mask_destination.name}",
                 "predictions": sorted(predictions, key=lambda row: row["label"]),
+                "methods": methods,
             }
         )
     return output
@@ -256,7 +290,7 @@ def _synthetic_panel(synthetic: list[dict[str, object]]) -> str:
             "Run the quick-start command and rebuild.</p>"
         )
     return '''<div class="synthetic">
-<div class="synthetic-controls"><label for="synthetic-select">Synthetic sample</label><select id="synthetic-select"></select><label for="synthetic-method">Output</label><select id="synthetic-method"></select><p id="synthetic-note" class="notice">Only receipt-bound synthetic outputs are shown. Missing method outputs remain pending; they are never fabricated.</p></div>
+<div class="synthetic-controls"><label for="synthetic-select">Synthetic sample</label><select id="synthetic-select"></select><label for="synthetic-method">Output</label><select id="synthetic-method"></select><p id="synthetic-note" class="notice">These deterministic CPU micro-runs exercise repository code on generated patterns only. They are not benchmark evidence. Unavailable external-weight methods are named explicitly and never receive fabricated masks.</p><ul id="synthetic-availability" class="availability"></ul></div>
 <div class="grid"><figure class="card synthetic-figure"><img id="synthetic-source" alt="Synthetic ridge-pattern source"><figcaption>Synthetic source</figcaption></figure><figure class="card synthetic-figure"><img id="synthetic-mask" alt="Selected synthetic foreground mask"><figcaption id="synthetic-caption">Synthetic ground truth</figcaption></figure></div>
 </div>'''
 
@@ -322,7 +356,7 @@ def main() -> None:
 <section id="datasets" class="section"><div class="wrap"><h2>Datasets and ground truth</h2><p class="section-intro">The public repository ships no source fingerprint. Counts and definitions below describe the authorised local evaluation protocol.</p><div class="grid"><article class="card dataset"><h3>SD302-Latent</h3><p>10,092 annotated impressions from 200 subjects. Examiner ROI polygons define Table A; 10,024 complete ridge-quality maps define Table A-prime.</p><p class="meta">136 / 24 / 40 subjects · train / validation / test</p></article><article class="card dataset"><h3>SD302-Exemplar</h3><p>Expert minutiae form a lower-bound convex hull. B1 reports MC, HR, PAR, and OHF—never Dice against the hull.</p></article><article class="card dataset"><h3>Exclusions</h3><p>68 incomplete quality annotations affect A-prime only; two NONPRINT annotations are excluded from test scoring.</p></article></div><figure class="hull-explainer"><img src="assets/hull-explainer.svg" alt="Synthetic ridge pattern with expert minutiae points and their convex hull"><figcaption>A synthetic explanation of the exemplar endpoint: the minutiae hull is known foreground, while ridge area outside it remains unknown.</figcaption></figure></div></section>
 <section id="methods" class="section"><div class="wrap"><h2>Methods</h2><p class="section-intro">Exactly one card represents each Fig. 2 entry. Multi-row entries expand only in the result tables. The dagger marks the declared two-dimensional substitute.</p><div class="grid">{method_cards()}</div></div></section>
 <section id="results" class="section"><div class="wrap"><h2>Interactive results</h2><p class="section-intro">Every value, interval, and significance row below is generated from the same tracked aggregate CSV/JSON payload used by the paper tables. Empty cells are deliberately rendered as pending.</p><div class="tabs" role="tablist" aria-label="Result tables">{tabs}</div><div id="result-panel" role="tabpanel" aria-live="polite"><div class="controls"><label>Metric <select id="metric"><option value="dice">Dice</option><option value="jaccard">Jaccard</option><option value="mdr">MDR</option><option value="fdr">FDR</option><option value="accuracy">Accuracy</option><option value="mc">MC</option><option value="hr">HR</option><option value="par">PAR</option><option value="ohf">OHF</option><option value="ms_per_img">ms/img</option></select></label><label id="group-filter-wrap" hidden>Device / capture group <select id="group-filter"><option value="all">All groups</option></select></label><button id="sort-toggle" class="button" aria-label="High to low">High to low</button></div><div class="table-scroll"><table><thead><tr><th>Approach</th><th>Family</th><th>Status</th><th>Metric and 95% CI</th><th>Seeds</th><th>Params M</th><th>ms/img</th><th>Device</th></tr></thead><tbody id="result-body"></tbody></table></div><h3>Dice–runtime trade-off</h3><div id="pareto" class="chart"></div><h3>Corrected significance</h3><div class="table-scroll significance"><table><thead><tr><th>Metric</th><th>Comparison</th><th>Estimate</th><th>95% CI</th><th>Holm p</th><th>Significant</th><th>Status</th></tr></thead><tbody id="significance-body"></tbody></table></div></div></div></section>
-<section id="demo" class="section"><div class="wrap"><h2>Synthetic browser demo</h2><p class="section-intro">Choose a generated print and a receipt-bound output. Ground truth is always available; method outputs appear only after the corresponding model has genuinely been run on these synthetic inputs and its digest has been added to the synthetic receipt.</p>{_synthetic_panel(synthetic)}</div></section>
+<section id="demo" class="section"><div class="wrap"><h2>Synthetic browser demo</h2><p class="section-intro">Choose a generated print and a receipt-bound output. Ground truth is always available; each completed output comes from the named repository implementation after synthetic-train-only fitting where required. These micro-runs demonstrate executable code paths, not relative accuracy or biometric performance.</p>{_synthetic_panel(synthetic)}</div></section>
 <section id="findings" class="section"><div class="wrap"><h2>Findings</h2><ul id="findings-list"><li>Pending aggregate finalisation.</li></ul></div></section>
 <section id="reproduce" class="section"><div class="wrap"><h2>Reproducibility</h2><p class="section-intro">No script downloads biometric data. Supply locally authorised paths and frozen receipts.</p><pre>python -m pip install -r requirements.txt
 python scripts/smoke_synthetic.py --work-dir .smoke
@@ -354,6 +388,14 @@ python scripts/scan_release.py</pre><p>Seeds, thresholds, immutable split assign
         "source_sha256": source_hashes,
         "result_rows": len(results),
         "synthetic_examples": len(synthetic),
+        "synthetic_complete_methods": (
+            sum(method["status"] == "complete" for method in synthetic[0]["methods"])
+            if synthetic else 0
+        ),
+        "synthetic_unavailable_methods": (
+            sum(method["status"] == "unavailable" for method in synthetic[0]["methods"])
+            if synthetic else 0
+        ),
         "method_cards": len(METHOD_CATALOG),
     }
     (SITE / "build_manifest.json").write_text(

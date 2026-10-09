@@ -116,6 +116,11 @@ td.numeric { text-align: right; font-variant-numeric: tabular-nums; }
 .synthetic { display: grid; grid-template-columns: 260px 1fr; gap: 20px; }
 .synthetic-controls { display: grid; align-content: start; gap: 14px; }
 .synthetic-figure { grid-column: span 6; }
+.availability { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.method-status { padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); font-size: .78rem; line-height: 1.35; }
+.method-status.complete { border-left: 4px solid var(--accent); }
+.method-status.unavailable { border-left: 4px solid var(--pending); }
+.method-status.not_built { border-left: 4px solid var(--line); }
 .notice { padding: 14px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted); }
 pre { white-space: pre-wrap; background: #07111f; color: #d7e5f8; border-radius: 12px; padding: 18px; overflow: auto; }
 .footer { padding: 52px 0; color: var(--muted); }
