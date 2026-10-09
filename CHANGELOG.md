@@ -21,3 +21,6 @@
   barrier.
 - Added a fail-closed Dataset-1-to-B1 inference and one-time hull-scoring
   workflow that keeps held-out minutiae and hull data outside inference.
+- Replaced placeholder table dispatch with hash-bound one-command reproduction
+  plans for A, A-prime, B1 and D, including complete-coverage and GT-policy
+  checks plus synthetic transaction tests.

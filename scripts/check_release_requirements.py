@@ -63,7 +63,8 @@ def _required_paths() -> tuple[str, ...]:
         "segbench", "configs", "scripts", "splits/sd302_subject_split.json",
         "results", "figures", "docs/METHODOLOGY.md", "docs/PROTOCOL.md",
         "docs/DATASETS.md", "docs/METHODS.md", "docs/RESULTS.md",
-        "docs/LIMITATIONS.md", "docs/FAQ.md", "examples/synthetic/quickstart.ipynb",
+        "docs/LIMITATIONS.md", "docs/FAQ.md", "docs/REPRODUCTION.md",
+        "examples/synthetic/quickstart.ipynb",
         "tests", "environment.yml", "requirements.txt", "pyproject.toml",
         ".github/workflows/ci.yml", ".github/workflows/pages.yml",
     )
@@ -174,6 +175,24 @@ def main() -> None:
         (ROOT / "configs" / name).is_file()
         for name in ("svm.yaml", "rf.yaml", "welm.yaml", "gmfs.yaml", "sufs_zero.yaml", "fingernet.yaml")
     )
+    reproduction = (ROOT / "scripts" / "reproduce.py").read_text(encoding="utf-8")
+    wrappers = tuple(
+        ROOT / "scripts" / name
+        for name in (
+            "reproduce_table_A.sh", "reproduce_table_A_prime.sh",
+            "reproduce_table_B1.sh", "reproduce_table_D.sh",
+        )
+    )
+    checks["functional_reproduction_entrypoints"] = all(
+        path.is_file() and "reproduce.py" in path.read_text(encoding="utf-8")
+        for path in wrappers
+    ) and all(
+        token in reproduction
+        for token in (
+            "infer_masks.py", "predict_classical.py", "run_pyfing.py",
+            "evaluate_masks.py", "evaluate_hull.py", "_assert_prediction_coverage",
+        )
+    ) and "[\"--help\"]" not in reproduction
 
     handoff = (ROOT / "scripts" / "autonomous_validation_handoff.py").read_text(
         encoding="utf-8"

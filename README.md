@@ -117,14 +117,17 @@ paper results. Once an authorised local SD302 copy is available, each paper
 table has one entry point:
 
 ```bash
-bash scripts/reproduce_table_A.sh --config local/benchmark.env
-bash scripts/reproduce_table_A_prime.sh --config local/benchmark.env
-bash scripts/reproduce_table_B1.sh --config local/benchmark.env
-bash scripts/reproduce_table_D.sh --config local/benchmark.env
+bash scripts/reproduce_table_A.sh --plan "$BENCH_ROOT/plans/A.json" --output "$BENCH_ROOT/out"
+bash scripts/reproduce_table_A_prime.sh --plan "$BENCH_ROOT/plans/A_prime.json" --output "$BENCH_ROOT/out"
+bash scripts/reproduce_table_B1.sh --plan "$BENCH_ROOT/plans/B1.json" --output "$BENCH_ROOT/out"
+bash scripts/reproduce_table_D.sh --plan "$BENCH_ROOT/plans/D.json" --output "$BENCH_ROOT/out"
 ```
 
-The shell entry points fail closed until the required private paths and frozen
-selection receipts are supplied. They never download biometric data.
+The shell entry points validate private manifests, artifact hashes, subject
+splits and frozen selection receipts, invoke the real inference/evaluation
+programs, and reject incomplete prediction coverage. They never download
+biometric data or select a result on test. See the complete private-plan schema
+and dry-run workflow in [REPRODUCTION.md](docs/REPRODUCTION.md).
 
 Final aggregate outputs enter the public tree through one fail-closed command.
 Run its dry mode first; it validates the hash-bound aggregate-only bundle and

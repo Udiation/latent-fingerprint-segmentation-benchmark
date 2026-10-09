@@ -4,6 +4,7 @@
     "abstract_120_to_150_words": true,
     "ci_runs_synthetic_and_public_gates": true,
     "classical_and_zero_shot_configs": true,
+    "functional_reproduction_entrypoints": true,
     "incremental_scoring_is_score_once": true,
     "interactive_results_features": true,
     "license_and_citation": true,

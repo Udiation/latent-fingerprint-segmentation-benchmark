@@ -596,3 +596,25 @@ arguments. No private location, machine identity, or device product is embedded
 in source or documentation. Biometric inputs, masks, manifests, checkpoints,
 per-image outputs, and private qualitative reports remain outside version
 control.
+
+### Public one-command entry points
+
+Tables A, A-prime, B1 and D are dispatched by the corresponding
+`scripts/reproduce_table_*.sh` command and the private-plan schema documented
+in `REPRODUCTION.md`. The dispatcher is execution-only: it cannot tune a model,
+select a checkpoint, or select a threshold. Neural checkpoints are coupled to
+their validation-only selector receipt and threshold-policy amendment; fitted
+artifacts are hash-checked before use. All generated or supplied predictions
+must cover the complete selected test partition before the locked evaluator is
+called. This makes the evaluator's missing-as-background behavior an explicit
+standalone policy rather than an accidental way for a reproduction run to
+proceed with missing files.
+
+The Table A-prime entry point hash-binds a successful Table A receipt and must
+reuse its exact run key, method, prediction template and prediction PPI; only
+`gt_column` changes. B1 always dispatches the lower-bound hull evaluator,
+which emits its three references and never emits pixel-overlap metrics. Table D
+entries declare their target evaluator explicitly because its cross-domain
+directions have different available ground truth. The dry-run form validates
+paths, artifact hashes, split syntax, target resolution and dispatch while
+printing the exact commands; it does not open test images or write results.

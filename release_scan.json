@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "status": "PASS",
-  "files_checked": 233,
+  "files_checked": 235,
   "approved_synthetic_hashes": 24,
   "checks": [
     "no biometric filename patterns outside the naming explanation",

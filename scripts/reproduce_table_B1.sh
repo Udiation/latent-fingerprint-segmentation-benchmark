@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
-exec python scripts/reproduce.py --table B1 "$@"
-
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+exec "${PYTHON:-python3}" "$SCRIPT_DIR/reproduce.py" --table B1 "$@"
