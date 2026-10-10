@@ -2,11 +2,11 @@
   "schema_version": 1,
   "status": "PASS",
   "source_sha256": {
-    "public_results.csv": "875b7561035b818c7d184ede02c5052bdd4fa903022827b9afc60ff559eb83d4",
-    "table_status.csv": "2c853f6146b16eb55c904752adb0d294018b4df69fd061e30e6ef3e392987567",
-    "statistics.csv": "6d978d65665669028638f9f21f6e22990fc1ba87cee7bf2559a98d874f8f1574"
+    "public_results.csv": "c90b0ab47ce7cb0de032c19ae38cb57cfea48988063a0acd161839a9e77e75bc",
+    "table_status.csv": "9901925d9be1d19f6e6587004314d2b282a043db9399d00c6cd6434c822c7243",
+    "statistics.csv": "f3aada459b4c470d557ea1e20df0ed1cde78c2b32842f709f5963610b1b22db6"
   },
-  "result_rows": 18,
+  "result_rows": 128,
   "synthetic_examples": 3,
   "synthetic_complete_methods": 14,
   "synthetic_unavailable_methods": 2,

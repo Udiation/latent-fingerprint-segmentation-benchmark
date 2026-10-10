@@ -37,6 +37,10 @@
     const spread = row[`${metric}_seed_std`];
     return spread === "" || spread === undefined ? mean : `${mean} ± ${fmt(spread, metric)}`;
   };
+  const statusLabel = row => (
+    row.status === "pending" && row.comment.includes("training — pending")
+      ? "training — pending" : row.status
+  );
 
   function filteredRows() {
     return resultRows.filter(row => row.table === activeTable && (
@@ -104,7 +108,7 @@
       const label = row.group && row.group !== "overall"
         ? `${row.approach} — ${row.group}` : row.approach;
       const cells = [
-        label, row.family, row.status, null, row.seeds_completed || "—",
+        label, row.family, statusLabel(row), null, row.seeds_completed || "—",
         fmtWithStd(row, "params_m"), fmtWithStd(row, "ms_per_img"),
         row.device || "—",
       ];
@@ -113,7 +117,7 @@
         if (index === 3) td.appendChild(metricCell(row));
         else td.textContent = cell;
         if (index >= 3) td.className = "numeric";
-        if (cell === "pending") td.classList.add("pending");
+        if (typeof cell === "string" && cell.includes("pending")) td.classList.add("pending");
         tr.appendChild(td);
       });
       tableBody.appendChild(tr);
