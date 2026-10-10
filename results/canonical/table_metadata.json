@@ -1,0 +1,52 @@
+{
+  "tables": [
+    {
+      "caption": "Aggregate held-out results for 2010 impressions from 40 subjects; ground truth: examiner ROI polygon; completed seeds per row: 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures.",
+      "table": "A",
+      "title": "Table A \u2014 SD302-Latent examiner ROI",
+      "view": "overall"
+    },
+    {
+      "caption": "Aggregate held-out results for 2001 impressions from 40 subjects; ground truth: examiner ROI polygon; completed seeds per row: 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures.",
+      "table": "A_value",
+      "title": "Table A-value \u2014 examiner assessment groups",
+      "view": "examiner_value"
+    },
+    {
+      "caption": "Aggregate held-out results for 2009 impressions from 40 subjects; ground truth: ridge quality map; completed seeds per row: 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures.",
+      "table": "A_prime",
+      "title": "Table A-prime \u2014 usable-ridge area",
+      "view": "overall"
+    },
+    {
+      "caption": "Aggregate held-out results for 475 impressions from 40 subjects; ground truth: expert-minutiae convex hull lower bound; completed seeds per row: 0, 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures. Unavailable: RA-RUnet (latent-to-live-scan alignment) -- Required unlabelled SD302b train-subject target data is absent after three documented transfer failures; the frozen protocol forbids an SD302g-only substitute..",
+      "table": "B1",
+      "title": "Table B1 \u2014 SD302-Exemplar lower-bound evaluation",
+      "view": "overall"
+    },
+    {
+      "caption": "Aggregate held-out results for 475 impressions from 40 subjects; ground truth: expert-minutiae convex hull lower bound; completed seeds per row: 0, 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures.",
+      "table": "B1",
+      "title": "Table B1 \u2014 SD302-Exemplar lower-bound evaluation",
+      "view": "group"
+    },
+    {
+      "caption": "Aggregate held-out results for 475 impressions from 40 subjects; ground truth: expert-minutiae convex hull lower bound; completed seeds per row: 0, 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures.",
+      "table": "B1",
+      "title": "Table B1 \u2014 SD302-Exemplar lower-bound evaluation",
+      "view": "device"
+    },
+    {
+      "caption": "Aggregate held-out results for 475 impressions from 40 subjects; ground truth: expert-minutiae convex hull lower bound; completed seeds per row: 0, 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures.",
+      "table": "B1",
+      "title": "Table B1 \u2014 SD302-Exemplar lower-bound evaluation",
+      "view": "capture"
+    },
+    {
+      "caption": "Aggregate held-out results for 475 impressions from 40 subjects; ground truth: expert-minutiae convex hull lower bound; completed seeds per row: 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures.",
+      "table": "D",
+      "title": "Table D \u2014 latent-to-exemplar cross-domain evaluation",
+      "view": "latent_to_exemplar"
+    }
+  ]
+}

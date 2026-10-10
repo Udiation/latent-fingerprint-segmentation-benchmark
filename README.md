@@ -37,19 +37,19 @@ blank and will be replaced atomically by the v1.1 aggregate update.
 | Classical | GMFS (default) | complete | 75.91% | 62.61% | 25.06% | 43.72% | 1 | 0.00 | 15.62 (CPU) |
 | Classical | GMFS (val-tuned) | complete | 79.58% | 67.19% | 15.56% | 60.93% | 1 | 0.00 | 15.48 (CPU) |
 | Pretrained | SUFS (zero-shot) | complete | 74.95% | 61.70% | 27.00% | 39.13% | 1 | 7.08 | 21.22 (GPU) |
-| Pretrained | SUFS (fine-tuned) | complete | 81.85% ± 0.72% | 70.91% ± 0.76% | 7.71% ± 1.57% | 74.34% ± 10.31% | 3 | 7.08 ± 0.00 | 26.17 ± 0.14 (GPU) |
+| Pretrained | SUFS (fine-tuned) | complete | 81.85% ± 0.72% | 70.91% ± 0.76% | 7.71% ± 1.57% | 74.34% ± 10.31% | 3 | 7.08 | 26.17 (GPU) |
 | Pretrained | FingerNet (pretrained) | complete | 58.93% | 46.45% | 49.94% | 11.54% | 1 | 4.71 | 35.51 (GPU) |
-| Classical | SVM (Nyström RBF) | complete | 75.85% ± 0.05% | 62.26% ± 0.07% | 27.91% ± 0.07% | 35.35% ± 0.15% | 3 | 1.01 ± 0.00 | 41.57 ± 0.32 (CPU) |
-| Classical | Random forest | complete | 76.82% ± 0.04% | 63.40% ± 0.06% | 26.13% ± 0.09% | 37.35% ± 0.15% | 3 | 52.70 ± 0.41 | 58.32 ± 1.03 (CPU) |
-| Classical | Weighted ELM | complete | 75.27% ± 0.19% | 61.57% ± 0.20% | 28.70% ± 0.22% | 35.10% ± 0.07% | 3 | 0.01 ± 0.00 | 32.28 ± 0.41 (CPU) |
-| Encoder-decoder | U-Net | complete | 79.50% ± 1.18% | 68.21% ± 0.96% | 20.95% ± 1.68% | 32.78% ± 1.94% | 3 | 7.24 ± 0.00 | 29.57 ± 2.46 (GPU) |
-| Encoder-decoder | UNet++ | complete | 78.22% ± 0.58% | 67.49% ± 0.90% | 21.92% ± 3.24% | 33.21% ± 9.46% | 3 | 9.16 ± 0.00 | 42.36 ± 12.72 (GPU) |
-| Encoder-decoder | DRUnet | complete | 84.85% ± 0.57% | 74.39% ± 0.83% | 5.17% ± 1.45% | 64.75% ± 9.92% | 3 | 8.38 ± 0.00 | 33.40 ± 4.96 (GPU) |
-| Encoder-decoder | RUnet (no alignment) | complete | 84.46% ± 0.33% | 73.97% ± 0.53% | 4.25% ± 1.74% | 70.20% ± 7.11% | 3 | 8.38 ± 0.00 | 34.03 ± 7.51 (GPU) |
-| Patch CNN | LeNet | complete | 84.93% ± 0.18% | 74.46% ± 0.27% | 7.00% ± 0.83% | 58.00% ± 2.42% | 3 | 0.06 ± 0.00 | 16.76 ± 3.40 (GPU) |
-| Patch CNN | AlexNet | complete | 86.46% ± 0.02% | 76.62% ± 0.03% | 8.68% ± 0.14% | 41.73% ± 0.40% | 3 | 2.91 ± 0.00 | 19.22 ± 3.48 (GPU) |
-| Patch CNN | CNN + stacked AE | complete | 83.97% ± 0.07% | 73.08% ± 0.07% | 6.32% ± 0.86% | 69.41% ± 3.04% | 3 | 0.16 ± 0.00 | 19.44 ± 3.79 (GPU) |
-| Transformer | SegFormer-B2 (substitute†) | training — pending | 85.19% ± 2.59% | 75.42% ± 3.61% | 5.08% ± 3.39% | 64.65% ± 29.31% | 2 | 27.34 ± 0.00 | 33.59 ± 3.88 (GPU) |
+| Classical | SVM (RBF via Nystrom) | complete | 75.85% ± 0.05% | 62.26% ± 0.07% | 27.91% ± 0.07% | 35.35% ± 0.15% | 3 | 1.01 | 41.57 (CPU) |
+| Classical | Random forest | complete | 76.82% ± 0.04% | 63.40% ± 0.06% | 26.13% ± 0.09% | 37.35% ± 0.15% | 3 | 52.70 | 58.32 (CPU) |
+| Classical | Weighted ELM | complete | 75.27% ± 0.19% | 61.57% ± 0.20% | 28.70% ± 0.22% | 35.10% ± 0.07% | 3 | 0.01 | 32.28 (CPU) |
+| Encoder-decoder | U-Net | complete | 79.50% ± 1.18% | 68.21% ± 0.96% | 20.95% ± 1.68% | 32.78% ± 1.94% | 3 | 7.24 | 29.57 (GPU) |
+| Encoder-decoder | UNet++ | complete | 78.22% ± 0.58% | 67.49% ± 0.90% | 21.92% ± 3.24% | 33.21% ± 9.46% | 3 | 9.16 | 42.36 (GPU) |
+| Encoder-decoder | DRUnet | complete | 84.85% ± 0.57% | 74.39% ± 0.83% | 5.17% ± 1.45% | 64.75% ± 9.92% | 3 | 8.38 | 33.40 (GPU) |
+| Encoder-decoder | RUnet (no alignment) | complete | 84.46% ± 0.33% | 73.97% ± 0.53% | 4.25% ± 1.74% | 70.20% ± 7.11% | 3 | 8.38 | 34.03 (GPU) |
+| Patch CNN | LeNet | complete | 84.93% ± 0.18% | 74.46% ± 0.27% | 7.00% ± 0.83% | 58.00% ± 2.42% | 3 | 0.06 | 16.76 (GPU) |
+| Patch CNN | AlexNet | complete | 86.46% ± 0.02% | 76.62% ± 0.03% | 8.68% ± 0.14% | 41.73% ± 0.40% | 3 | 2.91 | 19.22 (GPU) |
+| Patch CNN | CNN + stacked AE | complete | 83.97% ± 0.07% | 73.08% ± 0.07% | 6.32% ± 0.86% | 69.41% ± 3.04% | 3 | 0.16 | 19.44 (GPU) |
+| Transformer | SegFormer-B2 (substitute) | complete | 85.59% ± 1.96% | 75.93% ± 2.71% | 5.48% ± 2.49% | 60.77% ± 21.79% | 3 | 27.34 | 32.69 (GPU) |
 | Reference | All background | complete | 0.00% | 0.00% | 100.00% | 0.00% | 1 | 0.00 | pending (CPU) |
 | Reference | All foreground | complete | 82.98% | 71.84% | 0.00% | 100.00% | 1 | 0.00 | pending (CPU) |
 <!-- END GENERATED HEADLINE RESULTS -->
@@ -63,26 +63,26 @@ unscored cross-domain row remains explicitly pending.
 <!-- BEGIN GENERATED B1 RESULTS -->
 | Approach | Status | MC | HR | PAR | OHF | Seeds | Params (M) | ms/img (device) |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| GMFS (default) | complete | 99.62% | 99.41% | 1.45 | 27.83% | 1 | 0.00 | 28.40 (CPU) |
-| GMFS (val-tuned) | pending | pending | pending | pending | pending | 0 | pending | pending |
-| SUFS (zero-shot) | complete | 99.90% | 99.77% | 1.51 | 30.32% | 1 | 7.08 | 1142.40 (CPU) |
-| SUFS (fine-tuned) | pending | pending | pending | pending | pending | 0 | pending | pending |
-| FingerNet (pretrained) | pending | pending | pending | pending | pending | 0 | pending | pending |
-| SVM (Nyström RBF) | pending | pending | pending | pending | pending | 0 | pending | pending |
-| Random forest | pending | pending | pending | pending | pending | 0 | pending | pending |
-| Weighted ELM | pending | pending | pending | pending | pending | 0 | pending | pending |
-| U-Net | pending | pending | pending | pending | pending | 0 | pending | pending |
-| UNet++ | pending | pending | pending | pending | pending | 0 | pending | pending |
-| DRUnet | pending | pending | pending | pending | pending | 0 | pending | pending |
-| RUnet (no alignment) | pending | pending | pending | pending | pending | 0 | pending | pending |
-| LeNet | pending | pending | pending | pending | pending | 0 | pending | pending |
-| AlexNet | pending | pending | pending | pending | pending | 0 | pending | pending |
-| CNN + stacked AE | pending | pending | pending | pending | pending | 0 | pending | pending |
-| SegFormer-B2 (substitute†) | pending | pending | pending | pending | pending | 0 | pending | pending |
-| RA-RUnet (aligned) | pending | pending | pending | pending | pending | 0 | pending | pending |
-| All background | complete | 0.00% | 0.00% | 0.00 | 0.00% | 1 | pending | pending |
-| All foreground | complete | 100.00% | 100.00% | 4.29 | 73.23% | 1 | pending | pending |
-| Hull as prediction | complete | 100.00% | 100.00% | 1.00 | 0.00% | 1 | pending | pending |
+| GMFS (default) | complete | 99.62% | 99.41% | 1.45 | 27.83% | 1 | 0.00 | 28.35 (CPU) |
+| GMFS (val-tuned) | complete | 99.89% | 99.68% | 1.48 | 28.95% | 1 | 0.00 | 27.91 (CPU) |
+| SUFS (zero-shot) | complete | 99.90% | 99.77% | 1.51 | 30.32% | 1 | 7.08 | 1142.45 (CPU) |
+| SUFS (fine-tuned) | complete | 95.87% ± 1.85% | 96.11% ± 1.56% | 3.84 ± 0.41 | 71.10% ± 3.01% | 3 | 7.08 | 31.80 (GPU) |
+| FingerNet (pretrained) | complete | 99.80% | 99.95% | 1.79 | 41.56% | 1 | 4.71 | 49.66 (GPU) |
+| SVM (RBF via Nystrom) | complete | 5.59% ± 3.71% | 5.76% ± 3.76% | 0.13 ± 0.07 | 35.56% ± 4.44% | 3 | 1.01 | 292.81 (CPU) |
+| Random forest | complete | 98.88% ± 0.44% | 98.98% ± 0.43% | 1.46 ± 0.02 | 28.53% ± 0.66% | 3 | 52.70 | 131.90 (CPU) |
+| Weighted ELM | complete | 27.87% ± 7.29% | 28.88% ± 7.79% | 0.52 ± 0.09 | 42.32% ± 3.56% | 3 | 0.01 | 105.31 (CPU) |
+| U-Net | complete | 91.74% ± 3.44% | 93.17% ± 3.14% | 3.39 ± 0.47 | 68.22% ± 3.21% | 3 | 7.24 | 54.61 (GPU) |
+| UNet++ | complete | 91.77% ± 4.24% | 92.91% ± 3.74% | 2.60 ± 0.70 | 59.60% ± 7.32% | 3 | 9.16 | 73.13 (GPU) |
+| DRUnet | complete | 98.41% ± 2.47% | 99.12% ± 1.40% | 2.48 ± 1.14 | 49.32% ± 23.40% | 3 | 8.38 | 62.89 (GPU) |
+| RUnet (no alignment) | complete | 98.83% ± 1.63% | 99.08% ± 1.30% | 3.13 ± 1.23 | 59.92% ± 18.14% | 3 | 8.38 | 63.44 (GPU) |
+| LeNet | complete | 99.94% ± 0.02% | 99.93% ± 0.04% | 1.68 ± 0.02 | 36.76% ± 0.56% | 3 | 0.06 | 23.85 (GPU) |
+| AlexNet | complete | 99.33% ± 0.21% | 99.69% ± 0.12% | 4.26 ± 0.01 | 73.02% ± 0.05% | 3 | 2.91 | 37.69 (GPU) |
+| CNN + stacked AE | complete | 99.09% ± 0.25% | 99.43% ± 0.24% | 4.25 ± 0.01 | 73.09% ± 0.03% | 3 | 0.16 | 35.56 (GPU) |
+| SegFormer-B2 (substitute) | complete | 99.80% ± 0.31% | 99.83% ± 0.26% | 3.88 ± 0.22 | 70.55% ± 1.58% | 3 | 27.34 | 79.54 (GPU) |
+| RA-RUnet (latent-to-live-scan alignment) | n/a | pending | pending | pending | pending | 0 | pending | pending |
+| All background | complete | 0.00% | 0.00% | 0.00 | 0.00% | 0 | 0.00 | 0.00 (CPU) |
+| All foreground | complete | 100.00% | 100.00% | 4.30 | 73.23% | 0 | 0.00 | 0.00 (CPU) |
+| Hull as prediction | complete | 100.00% | 100.00% | 1.00 | 0.00% | 0 | 0.00 | 0.00 (CPU) |
 <!-- END GENERATED B1 RESULTS -->
 
 [Full result schema](results/README.md) · [Protocol](docs/PROTOCOL.md) ·

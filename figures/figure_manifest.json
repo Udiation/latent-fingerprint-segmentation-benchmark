@@ -1,7 +1,67 @@
 {
-  "figures": [],
+  "figures": [
+    {
+      "kind": "dice_distribution",
+      "mime_type": "application/pdf",
+      "path": "figures/dice_boxplot.pdf",
+      "sha256": "376c8d26ae71c09a05032c9b64485b62fc8fb41fb5ca90829b9fd0b23c507903",
+      "source_receipt_sha256": "307eec567faf363c7dcc88b88c1af589b254377d7e808db3075fec0a04359f98"
+    },
+    {
+      "kind": "dice_distribution",
+      "mime_type": "image/png",
+      "path": "figures/dice_boxplot.png",
+      "sha256": "e5b873be126d183a74e16379546d95bb59533de52212113f7d459e35a482ee44",
+      "source_receipt_sha256": "307eec567faf363c7dcc88b88c1af589b254377d7e808db3075fec0a04359f98"
+    },
+    {
+      "kind": "examiner_value",
+      "mime_type": "application/pdf",
+      "path": "figures/dice_by_examiner_value.pdf",
+      "sha256": "fef944d55b2cfc53c751304ae09223f19b26da52a7acf5ae14770388a7d42cad",
+      "source_receipt_sha256": "307eec567faf363c7dcc88b88c1af589b254377d7e808db3075fec0a04359f98"
+    },
+    {
+      "kind": "examiner_value",
+      "mime_type": "image/png",
+      "path": "figures/dice_by_examiner_value.png",
+      "sha256": "af724b1632cf43d31a36226ae24ce9884509c1c42b7acf8767ce248371a7f8bf",
+      "source_receipt_sha256": "307eec567faf363c7dcc88b88c1af589b254377d7e808db3075fec0a04359f98"
+    },
+    {
+      "kind": "efficiency_pareto",
+      "mime_type": "application/pdf",
+      "path": "figures/dice_vs_ms.pdf",
+      "sha256": "e803b25a85b3156b2c9127cf35612dc0bf304ccd2dd75221c380629e05483cf7",
+      "source_receipt_sha256": "307eec567faf363c7dcc88b88c1af589b254377d7e808db3075fec0a04359f98"
+    },
+    {
+      "kind": "efficiency_pareto",
+      "mime_type": "image/png",
+      "path": "figures/dice_vs_ms.png",
+      "sha256": "8247a86aeb35e1361b72b2ed2136d0ea47194af9748b22abe227e6514a3dd2dd",
+      "source_receipt_sha256": "307eec567faf363c7dcc88b88c1af589b254377d7e808db3075fec0a04359f98"
+    },
+    {
+      "kind": "exemplar_device",
+      "mime_type": "application/pdf",
+      "path": "figures/hr_by_device.pdf",
+      "sha256": "8d3d58ae3e32a492572013eaa98b52a27259107d8f44d1ea159750cb21ca9a79",
+      "source_receipt_sha256": "307eec567faf363c7dcc88b88c1af589b254377d7e808db3075fec0a04359f98"
+    },
+    {
+      "kind": "exemplar_device",
+      "mime_type": "image/png",
+      "path": "figures/hr_by_device.png",
+      "sha256": "390a62e26b6d65dc29cc1abc84bc515a08c0dfbe5d0c0e37bd1fd1fdb0a03b3b",
+      "source_receipt_sha256": "307eec567faf363c7dcc88b88c1af589b254377d7e808db3075fec0a04359f98"
+    }
+  ],
   "kind": "segbench.aggregate-figure-manifest.v1",
   "schema_version": 1,
-  "source_receipt": null,
-  "status": "pending"
+  "source_receipt": {
+    "kind": "stage5_aggregate_package_v1",
+    "sha256": "307eec567faf363c7dcc88b88c1af589b254377d7e808db3075fec0a04359f98"
+  },
+  "status": "complete"
 }

@@ -1,0 +1,28 @@
+{
+  "datasets": [
+    {
+      "dataset": "SD302-Latent",
+      "ground_truth": "SD302h examiner ROI (Table A) and usable-ridge map (Table A-prime)",
+      "notes": "Source-image counts; Table A-prime test availability is 2009 source images.",
+      "status": "complete",
+      "test_images": 2010,
+      "test_subjects": 40,
+      "train_images": 6779,
+      "train_subjects": 136,
+      "val_images": 1197,
+      "val_subjects": 24
+    },
+    {
+      "dataset": "SD302-Exemplar",
+      "ground_truth": "Expert-minutiae convex hull (lower bound; hull metrics only)",
+      "notes": "No supervised training on hull masks; Dice/Jaccard/MDR/FDR are not reported.",
+      "status": "complete",
+      "test_images": 475,
+      "test_subjects": 40,
+      "train_images": null,
+      "train_subjects": null,
+      "val_images": null,
+      "val_subjects": null
+    }
+  ]
+}

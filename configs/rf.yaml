@@ -1,20 +1,37 @@
-schema_version: 1
-method: rf
-display_name: Random forest
-task: block
+authenticated_evidence:
+  training_card_sha256_by_seed:
+    '0': 47d45096fcb4983bbc05af89b3974859a6fecc892cdf0aca7cb18d1882a7ecaf
+    '1': f0091289e4822d3740875cd25eedb287299f8979eb23fddc278182821200e00d
+    '2': 795a078ca60f78df43a0e3c5b096e8db874fa82089228c9d02586406f6114fc3
 data:
-  target_ppi: 500
   block_size: 16
-  context_size: 32
-  normalization: train_only
+  subset: finger_latent
+  target_ppi: 500
+method: rf
+schema_version: 1
 selection:
-  split: val
-  metric: balanced_block_accuracy
-  max_depth: [null, 20]
-  min_samples_leaf: [1, 5]
-  chosen: pending
-model:
-  n_estimators: 200
-  class_weight: balanced
-inference:
-  min_component_blocks: 4
+  candidate_grid:
+  - max_depth: null
+    min_samples_leaf: 1
+  - max_depth: null
+    min_samples_leaf: 5
+  - max_depth: 20
+    min_samples_leaf: 1
+  - max_depth: 20
+    min_samples_leaf: 5
+  chosen: &id001
+    max_depth: 20
+    min_samples_leaf: 5
+  chosen_by_seed:
+    '0': *id001
+    '1':
+      max_depth: 20
+      min_samples_leaf: 5
+    '2':
+      max_depth: 20
+      min_samples_leaf: 5
+  metric: validation_balanced_block_accuracy
+  status: selected
+  tie_break: predeclared_candidate_order
+status: complete
+task: block

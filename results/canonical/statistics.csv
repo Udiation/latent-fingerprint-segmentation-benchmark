@@ -1,0 +1,85 @@
+table,metric,comparison,reference_method,method,estimate,ci_lower,ci_upper,p_value,p_holm,significant,n_images,n_subjects,status,reason,receipt_status
+A,Dice,alexnet vs cnn_ae,alexnet,cnn_ae,0.02497001505217,0.0216342136841025,0.0279463834282651,4.954325386818049e-171,3.4680277707726345e-170,True,2010,40,ok,,
+A,Dice,alexnet vs drunet,alexnet,drunet,0.0161814203222173,0.0135292048282959,0.0186480757529582,8.576719983370243e-119,3.4306879933480973e-118,True,2010,40,ok,,
+A,Dice,alexnet vs fingernet,alexnet,fingernet,0.2753575679146773,0.2485376975921691,0.3032790255123074,5.588896344420762e-293,8.383344516631143e-292,True,2010,40,ok,,
+A,Dice,alexnet vs gmfs_default,alexnet,gmfs_default,0.1055011784735057,0.0946230496401761,0.1168541015938902,3.581614816437713e-266,3.581614816437713e-265,True,2010,40,ok,,
+A,Dice,alexnet vs gmfs_tuned,alexnet,gmfs_tuned,0.0688711326240078,0.0604567175130683,0.0779557251106861,3.249400027388248e-230,2.9244600246494226e-229,True,2010,40,ok,,
+A,Dice,alexnet vs lenet,alexnet,lenet,0.0153701257239428,0.012792751321562,0.0180085867575142,4.757639837247583e-120,2.3788199186237918e-119,True,2010,40,ok,,
+A,Dice,alexnet vs ra_runet,alexnet,ra_runet,0.0200445893159555,0.0167086519959527,0.0231338574661499,4.030579415512941e-111,1.2091738246538826e-110,True,2010,40,ok,,
+A,Dice,alexnet vs rf,alexnet,rf,0.0964627776922825,0.0879722049383787,0.1044888563221939,8.810974463296249e-279,1.0573169355955499e-277,True,2010,40,ok,,
+A,Dice,alexnet vs segformer_sub,alexnet,segformer_sub,0.0087584155309476,0.0041873214443236,0.0134371002550429,0.0004656407664933,0.0004656407664933,True,2010,40,ok,,
+A,Dice,alexnet vs sufs,alexnet,sufs,0.1151096912540046,0.1050395073877146,0.1247928240084011,6.3126090491811064e-276,6.943869954099215e-275,True,2010,40,ok,,
+A,Dice,alexnet vs sufs_ft,alexnet,sufs_ft,0.046131665129516,0.0394953293243998,0.0526190579733722,9.037645921845273e-174,7.230116737476218e-173,True,2010,40,ok,,
+A,Dice,alexnet vs svm,alexnet,svm,0.1060900085615893,0.0973912133662182,0.1152525987197014,7.723320440115209e-286,1.0040316572149772e-284,True,2010,40,ok,,
+A,Dice,alexnet vs unet,alexnet,unet,0.069660763649058,0.0594357562896013,0.0803493315260138,5.0383618240259696e-144,3.023017094415582e-143,True,2010,40,ok,,
+A,Dice,alexnet vs unetpp,alexnet,unetpp,0.0823973203245673,0.0679711487039208,0.0978664841601533,2.916057468219429e-85,5.832114936438858e-85,True,2010,40,ok,,
+A,Dice,alexnet vs welm,alexnet,welm,0.1119733304908809,0.1029601371361292,0.1214023332255731,3.1440947470029636e-288,4.4017326458041477e-287,True,2010,40,ok,,
+A,Dice,point estimate,,gmfs_default,0.7591385122503159,0.7480571780611461,0.769921306472528,,,False,2010,40,ok,,
+A,Dice,point estimate,,gmfs_tuned,0.795768558099814,0.7866023669065565,0.8046100135800439,,,False,2010,40,ok,,
+A,Dice,point estimate,,sufs,0.7495299994698171,0.7395960356988815,0.7598470057995615,,,False,2010,40,ok,,
+A,Dice,point estimate,,sufs_ft,0.8185080255943057,0.8114648159462221,0.825600140531807,,,False,2010,40,ok,,
+A,Dice,point estimate,,fingernet,0.5892821228091445,0.5618898051570129,0.6159267446631234,,,False,2010,40,ok,,
+A,Dice,point estimate,,svm,0.7585496821622325,0.7496125260368259,0.7674373680984776,,,False,2010,40,ok,,
+A,Dice,point estimate,,rf,0.7681769130315392,0.7602624878636313,0.7764634192032098,,,False,2010,40,ok,,
+A,Dice,point estimate,,welm,0.7526663602329409,0.7435435757830064,0.7617750748140881,,,False,2010,40,ok,,
+A,Dice,point estimate,,unet,0.7949789270747636,0.7837945973298414,0.805059206739334,,,False,2010,40,ok,,
+A,Dice,point estimate,,unetpp,0.7822423703992545,0.7663816233182564,0.7964896481954329,,,False,2010,40,ok,,
+A,Dice,point estimate,,drunet,0.8484582704016044,0.8445225528279523,0.8525392059170337,,,False,2010,40,ok,,
+A,Dice,point estimate,,ra_runet,0.8445951014078662,0.839966281872091,0.8491889439150747,,,False,2010,40,ok,,
+A,Dice,point estimate,,lenet,0.8492695649998789,0.8445698629167552,0.8534946515011802,,,False,2010,40,ok,,
+A,Dice,point estimate,,alexnet,0.8646396907238219,0.8616403107998791,0.8674985824272661,,,False,2010,40,ok,,
+A,Dice,point estimate,,cnn_ae,0.8396696756716517,0.8353205504261144,0.8439263136716743,,,False,2010,40,ok,,
+A,Dice,point estimate,,segformer_sub,0.8558812751928742,0.8503191287720756,0.8612455616660344,,,False,2010,40,ok,,
+A,Dice,point estimate,,all_background,0.0,0.0,0.0,,,False,2010,40,ok,,
+A,Dice,point estimate,,all_foreground,0.8298307573573301,0.8244213634647433,0.8351861748559667,,,False,2010,40,ok,,
+A,Dice deep-minus-classical,alexnet minus gmfs_tuned,gmfs_tuned,alexnet,0.0688711326240078,0.0604567175130683,0.0779557251106861,,,False,2010,40,ok,,
+A_prime,Dice deep-minus-classical,alexnet minus rf,rf,alexnet,-0.0357533742830484,-0.0492665210717866,-0.0236488621085548,,,False,2009,40,ok,,
+B1,HR,point estimate,,gmfs_default,0.9940774173480498,0.9929389195148132,0.9952257527803604,,,False,475,40,complete,,
+B1,HR,point estimate,,gmfs_tuned,0.9967620616523716,0.9958610160921204,0.9975638811029016,,,False,475,40,complete,,
+B1,HR,point estimate,,sufs,0.9976797872564585,0.9968466704314404,0.9983427543423484,,,False,475,40,complete,,
+B1,HR,point estimate,,sufs_ft,0.9611460438534034,0.9552760708567456,0.96622780431839,,,False,475,40,complete,,
+B1,HR,point estimate,,fingernet,0.999505611862558,0.9989051545165964,0.999844110219247,,,False,475,40,complete,,
+B1,HR,point estimate,,svm,0.0576287684476769,0.042802009452202,0.0734861292984046,,,False,475,40,complete,,
+B1,HR,point estimate,,rf,0.989811869100502,0.9875188341474366,0.9920073758212384,,,False,475,40,complete,,
+B1,HR,point estimate,,welm,0.2887628307617862,0.2469102563026434,0.3313212369500476,,,False,475,40,complete,,
+B1,HR,point estimate,,unet,0.9317063612535008,0.9233313032303389,0.9392132108398552,,,False,475,40,complete,,
+B1,HR,point estimate,,unetpp,0.9291250803427192,0.922034792942259,0.9359843057536456,,,False,475,40,complete,,
+B1,HR,point estimate,,drunet,0.9911622090808974,0.9900006446914386,0.9922516045331986,,,False,475,40,complete,,
+B1,HR,point estimate,,ra_runet,0.9908424483595336,0.989276848288527,0.9923427486563188,,,False,475,40,complete,,
+B1,HR,point estimate,,lenet,0.9992979641332516,0.9989663824535496,0.9995975363935248,,,False,475,40,complete,,
+B1,HR,point estimate,,alexnet,0.9969094453360324,0.9958740165882612,0.9978000562957212,,,False,475,40,complete,,
+B1,HR,point estimate,,cnn_ae,0.9943161361562568,0.9928086187174028,0.9957475095823112,,,False,475,40,complete,,
+B1,HR,point estimate,,segformer_sub,0.998277617519716,0.996644237315284,0.999337505517029,,,False,475,40,complete,,
+B1,HR,point estimate,,ra_runet_aligned,,,,,,False,475,40,N/A,Required unlabelled SD302b train-subject target data is absent after three documented transfer failures; the frozen protocol forbids an SD302g-only substitute.,
+B1,HR,point estimate,,all_background,0.0,0.0,0.0,,,False,475,40,complete,,
+B1,HR,point estimate,,all_foreground,1.0,1.0,1.0,,,False,475,40,complete,,
+B1,HR,point estimate,,hull_as_prediction,1.0,1.0,1.0,,,False,475,40,complete,,
+B1,HR,fingernet vs alexnet,fingernet,alexnet,0.0025961665265257,0.0015206323418032,0.0036863627560511,1.3796823900124856e-24,8.278094340074914e-24,True,475,40,ok,,COMPLETE
+B1,HR,fingernet vs cnn_ae,fingernet,cnn_ae,0.0051894757063011,0.003665337808351,0.0067030067533498,1.974389624247374e-36,1.5795116993978988e-35,True,475,40,ok,,COMPLETE
+B1,HR,fingernet vs drunet,fingernet,drunet,0.0083434027816605,0.0072292932699267,0.0094208848803605,1.903731128799608e-74,2.094104241679568e-73,True,475,40,ok,,COMPLETE
+B1,HR,fingernet vs gmfs_default,fingernet,gmfs_default,0.0054281945145082,0.0040726667213831,0.0067219481618256,4.703611084350638e-36,3.2925277590454466e-35,True,475,40,ok,,COMPLETE
+B1,HR,fingernet vs gmfs_tuned,fingernet,gmfs_tuned,0.0027435502101864,0.0016755401850866,0.0037805050251401,1.5778655565863901e-22,7.889327782931949e-22,True,475,40,ok,,COMPLETE
+B1,HR,fingernet vs lenet,fingernet,lenet,0.0002076477293064,-0.0005235871365935,0.000787722193912,0.1975214338324975,0.5925643014974926,False,475,40,ok,,COMPLETE
+B1,HR,fingernet vs ra_runet,fingernet,ra_runet,0.0086631635030244,0.0070382275896155,0.0103077851150336,7.397283487277047e-74,7.397283487277047e-73,True,475,40,ok,,COMPLETE
+B1,HR,fingernet vs ra_runet_aligned,fingernet,ra_runet_aligned,,,,,,False,0,40,N/A,Required unlabelled SD302b train-subject target data is absent after three documented transfer failures; the frozen protocol forbids an SD302g-only substitute.,COMPLETE
+B1,HR,fingernet vs rf,fingernet,rf,0.009693742762056,0.0073737306694572,0.0119814216854686,9.765952054553446e-48,8.7893568490981e-47,True,475,40,ok,,COMPLETE
+B1,HR,fingernet vs segformer_sub,fingernet,segformer_sub,0.001227994342842,-2.4091440736915337e-05,0.0029183906975403,0.3895715208768686,0.7791430417537373,False,475,40,ok,,COMPLETE
+B1,HR,fingernet vs sufs,fingernet,sufs,0.0018258246060997,0.0009108457965662,0.0027827558995894,8.123831909375977e-19,3.2495327637503907e-18,True,475,40,ok,,COMPLETE
+B1,HR,fingernet vs sufs_ft,fingernet,sufs_ft,0.0383595680091546,0.0335051646339234,0.0439491158634062,1.7468927814442132e-79,2.2934450919581742e-78,True,475,40,ok,,COMPLETE
+B1,HR,fingernet vs svm,fingernet,svm,0.9418768434148812,0.9258789061453888,0.9565929616308326,1.0333873845710204e-79,1.6534198153136324e-78,True,475,40,ok,,COMPLETE
+B1,HR,fingernet vs unet,fingernet,unet,0.0677992506090572,0.0606032658652511,0.0760867135454383,1.5295929041185654e-79,2.2934450919581742e-78,True,475,40,ok,,COMPLETE
+B1,HR,fingernet vs unetpp,fingernet,unetpp,0.0703805315198388,0.0636104293592611,0.0774065341717508,1.5295929041185654e-79,2.2934450919581742e-78,True,475,40,ok,,COMPLETE
+B1,HR,fingernet vs welm,fingernet,welm,0.7107427811007717,0.6679113080401402,0.7523344864464634,1.528963394638783e-79,2.2934450919581742e-78,True,475,40,ok,,COMPLETE
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),gmfs_tuned,gmfs_tuned,0.20099350355255763,,,,,False,475,40,descriptive_only,HR and Dice use different reference definitions; no same-metric CI is claimed,
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),sufs_ft,sufs_ft,0.14263801825909772,,,,,False,475,40,descriptive_only,HR and Dice use different reference definitions; no same-metric CI is claimed,
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),svm,svm,-0.7009209137145556,,,,,False,475,40,descriptive_only,HR and Dice use different reference definitions; no same-metric CI is claimed,
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),rf,rf,0.22163495606896277,,,,,False,475,40,descriptive_only,HR and Dice use different reference definitions; no same-metric CI is claimed,
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),welm,welm,-0.46390352947115465,,,,,False,475,40,descriptive_only,HR and Dice use different reference definitions; no same-metric CI is claimed,
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),unet,unet,0.13672743417873723,,,,,False,475,40,descriptive_only,HR and Dice use different reference definitions; no same-metric CI is claimed,
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),unetpp,unetpp,0.14688270994346475,,,,,False,475,40,descriptive_only,HR and Dice use different reference definitions; no same-metric CI is claimed,
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),drunet,drunet,0.14270393867929299,,,,,False,475,40,descriptive_only,HR and Dice use different reference definitions; no same-metric CI is claimed,
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),ra_runet,ra_runet,0.1462473469516674,,,,,False,475,40,descriptive_only,HR and Dice use different reference definitions; no same-metric CI is claimed,
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),lenet,lenet,0.15002839913337263,,,,,False,475,40,descriptive_only,HR and Dice use different reference definitions; no same-metric CI is claimed,
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),alexnet,alexnet,0.13226975461221058,,,,,False,475,40,descriptive_only,HR and Dice use different reference definitions; no same-metric CI is claimed,
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),cnn_ae,cnn_ae,0.15464646048460506,,,,,False,475,40,descriptive_only,HR and Dice use different reference definitions; no same-metric CI is claimed,
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),segformer_sub,segformer_sub,0.14239634232684184,,,,,False,475,40,descriptive_only,HR and Dice use different reference definitions; no same-metric CI is claimed,

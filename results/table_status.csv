@@ -1,6 +1,6 @@
 table,title,status,note
-A,"SD302-Latent, examiner ROI",pending,Missing methods or seeds remain explicitly pending.
-A_value,SD302-Latent by examiner value,pending,Missing methods or seeds remain explicitly pending.
-A_prime,"SD302-Latent, usable-ridge area",pending,Missing methods or seeds remain explicitly pending.
-B1,"SD302-Exemplar, minutiae-hull lower bound",pending,Two methods and three references are reference-verified; all other B1 rows remain pending.
-D,Cross-domain summary,pending,Not included in this Dataset-1 partial snapshot.
+A,Table A — SD302-Latent examiner ROI,complete,"Aggregate held-out results for 2010 impressions from 40 subjects; ground truth: examiner ROI polygon; completed seeds per row: 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures."
+A_value,Table A-value — examiner assessment groups,complete,"Aggregate held-out results for 2001 impressions from 40 subjects; ground truth: examiner ROI polygon; completed seeds per row: 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures."
+A_prime,Table A-prime — usable-ridge area,complete,"Aggregate held-out results for 2009 impressions from 40 subjects; ground truth: ridge quality map; completed seeds per row: 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures."
+B1,Table B1 — SD302-Exemplar lower-bound evaluation,complete,"Aggregate held-out results for 475 impressions from 40 subjects; ground truth: expert-minutiae convex hull lower bound; completed seeds per row: 0, 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures. Unavailable: RA-RUnet (latent-to-live-scan alignment) -- Required unlabelled SD302b train-subject target data is absent after three documented transfer failures; the frozen protocol forbids an SD302g-only substitute.."
+D,Table D — latent-to-exemplar cross-domain evaluation,complete,"Aggregate held-out results for 475 impressions from 40 subjects; ground truth: expert-minutiae convex hull lower bound; completed seeds per row: 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures."

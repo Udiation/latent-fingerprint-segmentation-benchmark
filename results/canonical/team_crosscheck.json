@@ -1,0 +1,8 @@
+{
+  "kind": "team_quality_gt_crosscheck_summary_v1",
+  "methods": [],
+  "reason": "authenticated team 9,921-image cross-check input was not supplied",
+  "schema_version": 1,
+  "selection_signal": false,
+  "status": "UNAVAILABLE"
+}

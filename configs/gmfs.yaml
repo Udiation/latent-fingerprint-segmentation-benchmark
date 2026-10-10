@@ -1,21 +1,39 @@
-schema_version: 1
-method: gmfs
-display_name_default: GMFS (default)
-display_name_tuned: GMFS (val-tuned)
-target_ppi: 500
 default:
-  sigma: 4.333333333333333
-  percentile: 95
-  threshold: 0.2
   closing_count: 6
   opening_count: 12
+  percentile: 95
+  sigma: 4.333333333333333
+  threshold: 0.2
+display_name_default: GMFS (default)
+display_name_tuned: GMFS (val-tuned)
+method: gmfs
+schema_version: 1
+status: complete
+target_ppi: 500
+task: algorithmic
 tuning:
+  candidates:
+    closing_count:
+    - 4
+    - 8
+    opening_count:
+    - 8
+    - 16
+    policy: default_plus_symmetric_corners
+    sigma:
+    - 3.0
+    - 6.0
+    threshold:
+    - 0.15
+    - 0.25
+  chosen:
+    closing_count: 8
+    image_dpi: 500
+    opening_count: 8
+    percentile: 95
+    sigma: 3.0
+    threshold: 0.15
+  chosen_artifact_sha256: e4352d97e18ee6f99c09fd34c9676a5786cb1905ac8779660e163c304d04f5fb
   metric: macro_dice
   split: val
-  candidates:
-    policy: default_plus_symmetric_corners
-    sigma: [3.0, 6.0]
-    threshold: [0.15, 0.25]
-    closing_count: [4, 8]
-    opening_count: [8, 16]
   tie_break: lexicographic_parameter_tuple

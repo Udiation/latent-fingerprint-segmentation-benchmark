@@ -1,19 +1,44 @@
-schema_version: 1
-method: welm
-display_name: Weighted ELM
-task: block
+authenticated_evidence:
+  training_card_sha256_by_seed:
+    '0': 6309df5a7f3b88af847c1bc43b78cdf029993ce185136c1e56083ea40e9def44
+    '1': 78acc5ab59ea82b8b962513b5c19a3e5cdfbb6743db03e3ca9c1ff5b374bcca8
+    '2': d1caaf99bbdd8abf1cb47da9c5228fda69beb87044816512af79357a68c783db
 data:
-  target_ppi: 500
   block_size: 16
-  context_size: 32
-  normalization: train_only
+  subset: finger_latent
+  target_ppi: 500
+method: welm
+schema_version: 1
 selection:
-  split: val
-  metric: balanced_block_accuracy
-  hidden_units: [500, 1000]
-  C: [1.0, 100.0, 10000.0, 1000000.0]
-  chosen: pending
-model:
-  weighting: W1_inverse_class_frequency
-inference:
-  min_component_blocks: 4
+  candidate_grid:
+  - C: 1.0
+    n_hidden: 500
+  - C: 100.0
+    n_hidden: 500
+  - C: 10000.0
+    n_hidden: 500
+  - C: 1000000.0
+    n_hidden: 500
+  - C: 1.0
+    n_hidden: 1000
+  - C: 100.0
+    n_hidden: 1000
+  - C: 10000.0
+    n_hidden: 1000
+  - C: 1000000.0
+    n_hidden: 1000
+  chosen_by_seed:
+    '0':
+      C: 10000.0
+      n_hidden: 500
+    '1':
+      C: 10000.0
+      n_hidden: 1000
+    '2':
+      C: 10000.0
+      n_hidden: 1000
+  metric: validation_balanced_block_accuracy
+  status: selected
+  tie_break: predeclared_candidate_order
+status: complete
+task: block

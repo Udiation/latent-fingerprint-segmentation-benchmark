@@ -1,6 +1,85 @@
 table,metric,comparison,estimate,ci_lower,ci_upper,p_holm,significant,status
-A,dice,Pending completed-seed statistics,,,,,,pending
-A_value,dice,Pending completed-seed statistics,,,,,,pending
-A_prime,dice,Pending completed-seed statistics,,,,,,pending
-B1,hr,Pending completed-seed statistics,,,,,,pending
-D,hr,Pending completed-seed statistics,,,,,,pending
+A,Dice,alexnet vs cnn_ae,0.02497001505217,0.0216342136841025,0.0279463834282651,3.4680277707726345e-170,true,complete
+A,Dice,alexnet vs drunet,0.0161814203222173,0.0135292048282959,0.0186480757529582,3.4306879933480973e-118,true,complete
+A,Dice,alexnet vs fingernet,0.2753575679146773,0.2485376975921691,0.3032790255123074,8.383344516631143e-292,true,complete
+A,Dice,alexnet vs gmfs_default,0.1055011784735057,0.0946230496401761,0.1168541015938902,3.581614816437713e-265,true,complete
+A,Dice,alexnet vs gmfs_tuned,0.0688711326240078,0.0604567175130683,0.0779557251106861,2.9244600246494226e-229,true,complete
+A,Dice,alexnet vs lenet,0.0153701257239428,0.012792751321562,0.0180085867575142,2.3788199186237918e-119,true,complete
+A,Dice,alexnet vs ra_runet,0.0200445893159555,0.0167086519959527,0.0231338574661499,1.2091738246538826e-110,true,complete
+A,Dice,alexnet vs rf,0.0964627776922825,0.0879722049383787,0.1044888563221939,1.0573169355955499e-277,true,complete
+A,Dice,alexnet vs segformer_sub,0.0087584155309476,0.0041873214443236,0.0134371002550429,0.0004656407664933,true,complete
+A,Dice,alexnet vs sufs,0.1151096912540046,0.1050395073877146,0.1247928240084011,6.943869954099215e-275,true,complete
+A,Dice,alexnet vs sufs_ft,0.046131665129516,0.0394953293243998,0.0526190579733722,7.230116737476218e-173,true,complete
+A,Dice,alexnet vs svm,0.1060900085615893,0.0973912133662182,0.1152525987197014,1.0040316572149772e-284,true,complete
+A,Dice,alexnet vs unet,0.069660763649058,0.0594357562896013,0.0803493315260138,3.023017094415582e-143,true,complete
+A,Dice,alexnet vs unetpp,0.0823973203245673,0.0679711487039208,0.0978664841601533,5.832114936438858e-85,true,complete
+A,Dice,alexnet vs welm,0.1119733304908809,0.1029601371361292,0.1214023332255731,4.4017326458041477e-287,true,complete
+A,Dice,point estimate: gmfs_default,0.7591385122503159,0.7480571780611461,0.769921306472528,,false,complete
+A,Dice,point estimate: gmfs_tuned,0.795768558099814,0.7866023669065565,0.8046100135800439,,false,complete
+A,Dice,point estimate: sufs_zero,0.7495299994698171,0.7395960356988815,0.7598470057995615,,false,complete
+A,Dice,point estimate: sufs_ft,0.8185080255943057,0.8114648159462221,0.825600140531807,,false,complete
+A,Dice,point estimate: fingernet,0.5892821228091445,0.5618898051570129,0.6159267446631234,,false,complete
+A,Dice,point estimate: svm,0.7585496821622325,0.7496125260368259,0.7674373680984776,,false,complete
+A,Dice,point estimate: rf,0.7681769130315392,0.7602624878636313,0.7764634192032098,,false,complete
+A,Dice,point estimate: welm,0.7526663602329409,0.7435435757830064,0.7617750748140881,,false,complete
+A,Dice,point estimate: unet,0.7949789270747636,0.7837945973298414,0.805059206739334,,false,complete
+A,Dice,point estimate: unetpp,0.7822423703992545,0.7663816233182564,0.7964896481954329,,false,complete
+A,Dice,point estimate: drunet,0.8484582704016044,0.8445225528279523,0.8525392059170337,,false,complete
+A,Dice,point estimate: r_unet,0.8445951014078662,0.839966281872091,0.8491889439150747,,false,complete
+A,Dice,point estimate: lenet,0.8492695649998789,0.8445698629167552,0.8534946515011802,,false,complete
+A,Dice,point estimate: alexnet,0.8646396907238219,0.8616403107998791,0.8674985824272661,,false,complete
+A,Dice,point estimate: cnn_ae,0.8396696756716517,0.8353205504261144,0.8439263136716743,,false,complete
+A,Dice,point estimate: segformer_b2,0.8558812751928742,0.8503191287720756,0.8612455616660344,,false,complete
+A,Dice,point estimate: all_background,0.0,0.0,0.0,,false,complete
+A,Dice,point estimate: all_foreground,0.8298307573573301,0.8244213634647433,0.8351861748559667,,false,complete
+A,Dice deep-minus-classical,alexnet minus gmfs_tuned,0.0688711326240078,0.0604567175130683,0.0779557251106861,,false,complete
+A_prime,Dice deep-minus-classical,alexnet minus rf,-0.0357533742830484,-0.0492665210717866,-0.0236488621085548,,false,complete
+B1,HR,point estimate: gmfs_default,0.9940774173480498,0.9929389195148132,0.9952257527803604,,false,complete
+B1,HR,point estimate: gmfs_tuned,0.9967620616523716,0.9958610160921204,0.9975638811029016,,false,complete
+B1,HR,point estimate: sufs_zero,0.9976797872564585,0.9968466704314404,0.9983427543423484,,false,complete
+B1,HR,point estimate: sufs_ft,0.9611460438534034,0.9552760708567456,0.96622780431839,,false,complete
+B1,HR,point estimate: fingernet,0.999505611862558,0.9989051545165964,0.999844110219247,,false,complete
+B1,HR,point estimate: svm,0.0576287684476769,0.042802009452202,0.0734861292984046,,false,complete
+B1,HR,point estimate: rf,0.989811869100502,0.9875188341474366,0.9920073758212384,,false,complete
+B1,HR,point estimate: welm,0.2887628307617862,0.2469102563026434,0.3313212369500476,,false,complete
+B1,HR,point estimate: unet,0.9317063612535008,0.9233313032303389,0.9392132108398552,,false,complete
+B1,HR,point estimate: unetpp,0.9291250803427192,0.922034792942259,0.9359843057536456,,false,complete
+B1,HR,point estimate: drunet,0.9911622090808974,0.9900006446914386,0.9922516045331986,,false,complete
+B1,HR,point estimate: r_unet,0.9908424483595336,0.989276848288527,0.9923427486563188,,false,complete
+B1,HR,point estimate: lenet,0.9992979641332516,0.9989663824535496,0.9995975363935248,,false,complete
+B1,HR,point estimate: alexnet,0.9969094453360324,0.9958740165882612,0.9978000562957212,,false,complete
+B1,HR,point estimate: cnn_ae,0.9943161361562568,0.9928086187174028,0.9957475095823112,,false,complete
+B1,HR,point estimate: segformer_b2,0.998277617519716,0.996644237315284,0.999337505517029,,false,complete
+B1,HR,point estimate: ra_runet_aligned — Required unlabelled SD302b train-subject target data is absent after three documented transfer failures; the frozen protocol forbids an SD302g-only substitute.,,,,,false,n/a
+B1,HR,point estimate: all_background,0.0,0.0,0.0,,false,complete
+B1,HR,point estimate: all_foreground,1.0,1.0,1.0,,false,complete
+B1,HR,point estimate: hull_as_prediction,1.0,1.0,1.0,,false,complete
+B1,HR,fingernet vs alexnet,0.0025961665265257,0.0015206323418032,0.0036863627560511,8.278094340074914e-24,true,complete
+B1,HR,fingernet vs cnn_ae,0.0051894757063011,0.003665337808351,0.0067030067533498,1.5795116993978988e-35,true,complete
+B1,HR,fingernet vs drunet,0.0083434027816605,0.0072292932699267,0.0094208848803605,2.094104241679568e-73,true,complete
+B1,HR,fingernet vs gmfs_default,0.0054281945145082,0.0040726667213831,0.0067219481618256,3.2925277590454466e-35,true,complete
+B1,HR,fingernet vs gmfs_tuned,0.0027435502101864,0.0016755401850866,0.0037805050251401,7.889327782931949e-22,true,complete
+B1,HR,fingernet vs lenet,0.0002076477293064,-0.0005235871365935,0.000787722193912,0.5925643014974926,false,complete
+B1,HR,fingernet vs ra_runet,0.0086631635030244,0.0070382275896155,0.0103077851150336,7.397283487277047e-73,true,complete
+B1,HR,fingernet vs ra_runet_aligned — Required unlabelled SD302b train-subject target data is absent after three documented transfer failures; the frozen protocol forbids an SD302g-only substitute.,,,,,false,n/a
+B1,HR,fingernet vs rf,0.009693742762056,0.0073737306694572,0.0119814216854686,8.7893568490981e-47,true,complete
+B1,HR,fingernet vs segformer_sub,0.001227994342842,-2.4091440736915337e-05,0.0029183906975403,0.7791430417537373,false,complete
+B1,HR,fingernet vs sufs,0.0018258246060997,0.0009108457965662,0.0027827558995894,3.2495327637503907e-18,true,complete
+B1,HR,fingernet vs sufs_ft,0.0383595680091546,0.0335051646339234,0.0439491158634062,2.2934450919581742e-78,true,complete
+B1,HR,fingernet vs svm,0.9418768434148812,0.9258789061453888,0.9565929616308326,1.6534198153136324e-78,true,complete
+B1,HR,fingernet vs unet,0.0677992506090572,0.0606032658652511,0.0760867135454383,2.2934450919581742e-78,true,complete
+B1,HR,fingernet vs unetpp,0.0703805315198388,0.0636104293592611,0.0774065341717508,2.2934450919581742e-78,true,complete
+B1,HR,fingernet vs welm,0.7107427811007717,0.6679113080401402,0.7523344864464634,2.2934450919581742e-78,true,complete
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop),0.20099350355255763,,,,false,complete
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop): sufs_ft,0.14263801825909772,,,,false,complete
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop): svm,-0.7009209137145556,,,,false,complete
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop): rf,0.22163495606896277,,,,false,complete
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop): welm,-0.46390352947115465,,,,false,complete
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop): unet,0.13672743417873723,,,,false,complete
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop): unetpp,0.14688270994346475,,,,false,complete
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop): drunet,0.14270393867929299,,,,false,complete
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop): r_unet,0.1462473469516674,,,,false,complete
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop): lenet,0.15002839913337263,,,,false,complete
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop): alexnet,0.13226975461221058,,,,false,complete
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop): cnn_ae,0.15464646048460506,,,,false,complete
+D,B1 HR minus A Dice,cross-endpoint aggregate delta (not a same-metric drop): segformer_b2,0.14239634232684184,,,,false,complete

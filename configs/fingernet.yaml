@@ -1,25 +1,24 @@
+authenticated_evidence:
+  amendment_sha256: 74e1dc2e9d910d2453ee1eea004f2d9dd37ef9847f2bfce9c9f0d5856fbc7f0f
+  inference_card_sha256: 01ddc5e48de708dd6db741206d0860e16110000241195165c9deff33d1eceddf
+  released_weights_sha256: 1c2c9ec33472d59e31bdb480bdee57aa9e109dc5b91bf01c0466154ee45c2ccd
+  selector_receipt_sha256: 24020b38632697d6f17cb03d6535959b485a668a3cb84a25652b9194e8624ed4
 method: fingernet
-display_name: FingerNet (Tang et al. 2017)
-target_ppi: 500.0
-released_weights:
-  sha256: 1c2c9ec33472d59e31bdb480bdee57aa9e109dc5b91bf01c0466154ee45c2ccd
-  keras_version: 2.0.2
-  backend: tensorflow
-source:
-  paper_repository: https://github.com/felixTY/FingerNet
-  archival_repository: https://github.com/592692070/FingerNet
-  commit: aee18f3a77e2f25e7e0c072e3beb89a2878f3290
+schema_version: 1
 selection:
-  split: val
-  threshold_candidates: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
-  chosen_threshold: pending
-inference:
-  batch_size: 1
-  coarse_stride: 8
-  released_threshold: 0.5
-  dimension_policy: floor_to_stride_then_background_fill
-  postprocess:
-    operation: opening
-    kernel: [5, 5]
-  warmup_images: 10
-  cuda_memory_fraction: 0.3
+  allowed_grid:
+  - 0.1
+  - 0.2
+  - 0.3
+  - 0.4
+  - 0.5
+  - 0.6
+  - 0.7
+  chosen_threshold: 0.1
+  source: validation_only_zero_shot_calibration
+  status: selected
+  weights_updated: false
+status: complete
+task: pixel
+training:
+  regime: zero_shot_released_weights

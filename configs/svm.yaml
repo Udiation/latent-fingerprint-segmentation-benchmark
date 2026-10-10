@@ -1,21 +1,40 @@
-schema_version: 1
-method: svm
-display_name: SVM (Nyström RBF)
-task: block
+authenticated_evidence:
+  training_card_sha256_by_seed:
+    '0': 0ec385fb2870fc0f830bf1c2c21a12e54a13937c02112219e83dfa924ba76281
+    '1': 7b1e164b50660fc27859e19971e952282fccc4d4f869ff2942e5a095bb1b3ef7
+    '2': d76987c3f75973f411b5f6d565d7930f98f06b8e7f067233bf3c0aee97eb0abf
 data:
-  target_ppi: 500
   block_size: 16
-  context_size: 32
-  normalization: train_only
+  subset: finger_latent
+  target_ppi: 500
+method: svm
+schema_version: 1
 selection:
-  split: val
-  metric: balanced_block_accuracy
-  gamma: [0.05, 0.2]
-  C: [0.1, 1.0, 10.0]
-  chosen: pending
-model:
-  kernel_approximation: nystroem_rbf
-  n_components: 1000
-  class_weight: balanced
-inference:
-  min_component_blocks: 4
+  candidate_grid:
+  - C: 0.1
+    gamma: 0.05
+  - C: 1.0
+    gamma: 0.05
+  - C: 10.0
+    gamma: 0.05
+  - C: 0.1
+    gamma: 0.2
+  - C: 1.0
+    gamma: 0.2
+  - C: 10.0
+    gamma: 0.2
+  chosen_by_seed:
+    '0':
+      C: 10.0
+      gamma: 0.05
+    '1':
+      C: 10.0
+      gamma: 0.2
+    '2':
+      C: 10.0
+      gamma: 0.05
+  metric: validation_balanced_block_accuracy
+  status: selected
+  tie_break: predeclared_candidate_order
+status: complete
+task: block
