@@ -24,7 +24,6 @@ from threadpoolctl import threadpool_limits
 
 import _path  # noqa: F401
 from segbench import features as F
-from segbench.deep_utils import run_provenance
 from segbench.io import (
     attach_split,
     load_manifest,
@@ -34,6 +33,7 @@ from segbench.io import (
 )
 from segbench.models import fitted_scalar_count, set_single_thread
 from segbench.postprocess import postprocess_blocks
+from segbench.provenance import run_provenance
 
 
 def ensure_nice(target: int = 10) -> int:
