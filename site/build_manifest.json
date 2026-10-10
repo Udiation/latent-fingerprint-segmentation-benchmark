@@ -4,9 +4,12 @@
   "source_sha256": {
     "public_results.csv": "a089359cd9f0e0c52f46241ad71980e89a18d02fe444311937dcc77238fe02f8",
     "table_status.csv": "54de9c2e1b45954cca480263c437f53e21e49955e1628a793a64b983a3daa1b0",
-    "statistics.csv": "b6e9d15a4c375cc4b7cce554b4a354a3d79698396c8e09a01ba6fa56e0e339e6"
+    "statistics.csv": "b6e9d15a4c375cc4b7cce554b4a354a3d79698396c8e09a01ba6fa56e0e339e6",
+    "sd302b_results.csv": "4dde2d8b5412a0535bf83d9c4623d7515c1ae3cd7a08ee6e1b05aba0be3e0711",
+    "sd302b_table_status.csv": "359191e3ead64f3d76cec6340867ec7d52cc4089aafc1b0071a763a41d5b9cba",
+    "sd302b_release_receipt.json": "c2b8b880d56609f28d993beadc6ac754172b8585b5020582e6215a74bbd5c5aa"
   },
-  "result_rows": 294,
+  "result_rows": 336,
   "synthetic_examples": 3,
   "synthetic_complete_methods": 14,
   "synthetic_unavailable_methods": 2,

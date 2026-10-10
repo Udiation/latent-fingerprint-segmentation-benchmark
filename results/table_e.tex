@@ -1,0 +1,31 @@
+\begin{table*}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{n = 2,010 test images from 40 test subjects. Ground truth: SD302h examiner ROI (field 9.300). Metrics are image-macro means; $\pm$ is sample standard deviation across completed seeds.}
+\label{tab:sd302e-roi}
+\begin{tabular}{llrrrrrrrrrrr}
+\toprule
+Method & Family & Acc (\%) & Precision (\%) & Recall (\%) & Dice (\%) & Jaccard (\%) & MIoU & MDR (\%) & FDR (\%) & ms/img & Params (M) & Seeds \\
+\midrule
+GMFS (default) & Classical & 69.10 & 83.17 & 74.94 & 75.91 & 62.61 & 0.464 & 25.06 & 43.72 & 15.6 & 0.000 & 1 \\
+GMFS (val-tuned) & Classical & 71.36 & 79.35 & 84.44 & 79.58 & 67.19 & 0.451 & 15.56 & 60.93 & 15.5 & 0.000 & 1 \\
+Support Vector Machine & Classical & 69.12 $\pm$ 0.06 & 84.15 $\pm$ 0.04 & 72.09 $\pm$ 0.07 & 75.85 $\pm$ 0.05 & 62.26 $\pm$ 0.07 & 0.488 $\pm$ 0.001 & 27.91 $\pm$ 0.07 & 35.35 $\pm$ 0.15 & 41.6 $\pm$ 0.3 & 1.009 & 3 \\
+Random decision forest & Classical & 69.82 $\pm$ 0.06 & 83.67 $\pm$ 0.03 & 73.87 $\pm$ 0.09 & 76.82 $\pm$ 0.04 & 63.40 $\pm$ 0.06 & 0.492 $\pm$ 0.000 & 26.13 $\pm$ 0.09 & 37.35 $\pm$ 0.15 & 58.3 $\pm$ 1.0 & 52.697 & 3 \\
+Weighted extreme learning machine & Classical & 68.61 $\pm$ 0.14 & 84.18 $\pm$ 0.02 & 71.30 $\pm$ 0.22 & 75.27 $\pm$ 0.19 & 61.57 $\pm$ 0.20 & 0.483 $\pm$ 0.002 & 28.70 $\pm$ 0.22 & 35.10 $\pm$ 0.07 & 32.3 $\pm$ 0.4 & 0.008 & 3 \\
+LeNet & Patch CNN & 77.46 $\pm$ 0.22 & 79.65 $\pm$ 0.51 & 93.00 $\pm$ 0.83 & 84.93 $\pm$ 0.18 & 74.46 $\pm$ 0.27 & 0.530 $\pm$ 0.006 & 7.00 $\pm$ 0.83 & 58.00 $\pm$ 2.42 & 16.8 $\pm$ 3.4 & 0.061 & 3 \\
+AlexNet & Patch CNN & 80.33 $\pm$ 0.04 & 83.45 $\pm$ 0.10 & 91.32 $\pm$ 0.14 & 86.46 $\pm$ 0.02 & 76.62 $\pm$ 0.03 & 0.598 $\pm$ 0.001 & 8.68 $\pm$ 0.14 & 41.73 $\pm$ 0.40 & 19.2 $\pm$ 3.5 & 2.908 & 3 \\
+CNN + stacked AE & Patch CNN & 75.62 $\pm$ 0.21 & 77.54 $\pm$ 0.62 & 93.68 $\pm$ 0.86 & 83.97 $\pm$ 0.07 & 73.08 $\pm$ 0.07 & 0.483 $\pm$ 0.009 & 6.32 $\pm$ 0.86 & 69.41 $\pm$ 3.04 & 19.4 $\pm$ 3.8 & 0.165 & 3 \\
+U-Net & Encoder-decoder & 74.74 $\pm$ 0.57 & 85.11 $\pm$ 0.88 & 79.05 $\pm$ 1.68 & 79.50 $\pm$ 1.18 & 68.21 $\pm$ 0.96 & 0.549 $\pm$ 0.007 & 20.95 $\pm$ 1.68 & 32.78 $\pm$ 1.94 & 29.6 $\pm$ 2.5 & 7.240 & 3 \\
+UNet++ & Encoder-decoder & 74.49 $\pm$ 0.45 & 85.11 $\pm$ 3.03 & 78.08 $\pm$ 3.24 & 78.22 $\pm$ 0.58 & 67.49 $\pm$ 0.90 & 0.546 $\pm$ 0.016 & 21.92 $\pm$ 3.24 & 33.21 $\pm$ 9.46 & 42.4 $\pm$ 12.7 & 9.159 & 3 \\
+DRUnet & Encoder-decoder & 76.85 $\pm$ 1.36 & 78.19 $\pm$ 1.92 & 94.83 $\pm$ 1.45 & 84.85 $\pm$ 0.57 & 74.39 $\pm$ 0.83 & 0.508 $\pm$ 0.040 & 5.17 $\pm$ 1.45 & 64.75 $\pm$ 9.92 & 33.4 $\pm$ 5.0 & 8.383 & 3 \\
+RUnet (no alignment) & Encoder-decoder & 76.17 $\pm$ 1.05 & 76.98 $\pm$ 1.55 & 95.75 $\pm$ 1.74 & 84.46 $\pm$ 0.33 & 73.97 $\pm$ 0.53 & 0.486 $\pm$ 0.027 & 4.25 $\pm$ 1.74 & 70.20 $\pm$ 7.11 & 34.0 $\pm$ 7.5 & 8.383 & 3 \\
+SegFormer-B2 (substitute\textsuperscript{\dag}) & Transformer & 78.84 $\pm$ 3.72 & 80.13 $\pm$ 4.98 & 94.52 $\pm$ 2.49 & 85.59 $\pm$ 1.96 & 75.93 $\pm$ 2.71 & 0.537 $\pm$ 0.097 & 5.48 $\pm$ 2.49 & 60.77 $\pm$ 21.79 & 32.7 $\pm$ 3.2 & 27.341 & 3 \\
+SUFS (zero-shot) & Pretrained & 68.62 & 83.53 & 73.00 & 74.95 & 61.70 & 0.471 & 27.00 & 39.13 & 21.2 & 7.084 & 1 \\
+SUFS (fine-tuned) & Pretrained & 73.46 $\pm$ 1.39 & 75.96 $\pm$ 2.50 & 92.29 $\pm$ 1.57 & 81.85 $\pm$ 0.72 & 70.91 $\pm$ 0.76 & 0.447 $\pm$ 0.039 & 7.71 $\pm$ 1.57 & 74.34 $\pm$ 10.31 & 26.2 $\pm$ 0.1 & 7.084 & 3 \\
+FingerNet (pretrained) & Pretrained & 60.00 & 92.79 & 50.06 & 58.93 & 46.45 & 0.430 & 49.94 & 11.54 & 35.5 & 4.710 & 1 \\
+All background & Reference & 28.16 & -- & 0.00 & 0.00 & 0.00 & 0.141 & 100.00 & 0.00 & -- & 0.000 & 1 \\
+All foreground & Reference & 71.84 & 71.84 & 100.00 & 82.98 & 71.84 & 0.362 & 0.00 & 100.00 & -- & 0.000 & 1 \\
+\bottomrule
+\end{tabular}
+\end{table*}

@@ -1,8 +1,8 @@
 # Methodology
 
-> **Release status:** protocol-complete; v1.0 is a provisional aggregate
-> snapshot. Completed rows contain authenticated test aggregates, while every
-> unfinished row is explicitly marked pending. No pending value is inferred.
+> **Release status:** protocol-complete v1.1 with locked authenticated
+> aggregates. Unavailable values remain explicit and are not inferred from
+> another method, seed or validation result.
 
 ## Study design
 
@@ -23,12 +23,22 @@ usable-ridge area derived from field 9.308. Of 10,092 annotated impressions,
 NONPRINT annotations are excluded from test scoring. Low ROI/quality agreement
 is retained rather than filtered.
 
-For SD302 exemplars, a full foreground outline is unavailable. Expert minutiae
-from field 9.331 are converted from physical units using the recorded image
-resolution and rasterised as a convex hull. The hull is a lower bound: pixels
-outside it can still be valid fingerprint. We therefore report minutiae
-coverage, hull recall, predicted-area ratio and outside-hull fraction, never
-Dice, Jaccard or precision against the hull.
+For SD302 exemplars, a full foreground outline is unavailable. The benchmark
+reuses the canonical SD302g-to-SD302b mapping only when dimensions and pixels
+match exactly. Expert minutiae from field 9.331 are converted from physical
+units using the recorded image resolution and rasterised as a convex hull. The
+hull is a lower bound: pixels outside it can still be valid fingerprint. We
+therefore report minutiae coverage, hull recall, predicted-area ratio and
+outside-hull fraction, never Dice, Jaccard or precision against the hull.
+
+The held-out SD302b lower-bound endpoint contains 430 rolled images from all 40
+test subjects and 9 images from 5 subjects whose release capture semantics are
+segmented slap. The latter are labelled “plain (segmented-slap)” rather than
+silently treated as conventional single-finger plain captures. Latent-trained
+models are applied without live-scan refitting; released zero-shot models retain
+their external provenance. Predicted foreground fraction and pairwise mask Dice
+may be reported as image-level stability descriptors, but these measure
+agreement, not accuracy, in the absence of pixel ground truth.
 
 ## Preprocessing and training
 
@@ -59,6 +69,11 @@ validation-selected threshold are frozen. Missing predictions are counted and
 scored as all-background. All-background and all-foreground rows are descriptive
 references and are excluded from method ranking.
 
+The aligned RA-RUnet row remains unavailable because no authenticated aligned
+checkpoint completed before the benchmark freeze. The required live-scan data
+were available; the scored no-alignment RUnet is not used as a substitute for
+the aligned model.
+
 ## Declared deviations
 
 - SegFormer-B2 is labelled as a substitute for the reviewed OCT-specific
@@ -75,5 +90,5 @@ references and are excluded from method ranking.
   not on the benchmark subjects.
 
 Metric values and chosen hyperparameters enter this repository only through an
-authenticated aggregate release bundle. The v1.1 refresh will replace pending
-cells after the remaining frozen run and locked scoring transaction complete.
+authenticated aggregate release bundle. The v1.1 tables preserve unavailable
+cells instead of synthesising values after the benchmark freeze.

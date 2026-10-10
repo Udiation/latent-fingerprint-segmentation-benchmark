@@ -5,4 +5,5 @@ opencv-python-headless>=4.8
 pandas>=2.0
 joblib>=1.3
 PyYAML>=6.0
+Pillow>=10
 nvidia-ml-py==13.615.71

@@ -201,9 +201,11 @@ test set is opened only after a run is frozen.
   grid; the released 5-by-5 opening is applied after each candidate threshold.
   This threshold calibration is reported explicitly and does not update any
   network weight. The earlier fixed-0.5 FingerNet card remains immutable audit
-  history but is superseded and selection-ineligible; the final row is pending
-  replay from sealed validation and test probabilities through a validation
-  selector and one fresh common-evaluator receipt. SUFS zero-shot retains its released decision rule, and
+  history but is superseded and selection-ineligible; the final row was
+  replayed from sealed validation and test probabilities through a validation
+  selector and one fresh common-evaluator receipt. That replay completed;
+  the released v1.1 FingerNet row is the resulting locked one-seed result.
+  SUFS zero-shot retains its released decision rule, and
   algorithmic parameters are not silently moved into the neural grid.
 - Pixel methods share the crop and augmentation distribution.
 - Training remains fp32 by default. A method may use bf16 autocast plus
@@ -295,8 +297,9 @@ For Table B1 recurrent alignment, the labelled source is restricted to SD302h
 latent training subjects and the unlabelled target is restricted to SD302b and
 SD302g training subjects. The SD302g hull is evaluation-only and is never a
 training target. For Table A, no target-domain alignment is run. At the current
-benchmark freeze, the team-supplied SD302b archive was unavailable after three
-authorized transfer failures, so the aligned RA-RUnet row remains pending. The
+benchmark freeze, no authenticated aligned RA-RUnet checkpoint had completed,
+so that row is reported unavailable. The required live-scan data were present;
+the scored no-alignment RUnet is never substituted for the aligned model. The
 target definition is not weakened to SD302g-only alignment. The same block
 cleanup is applied to every block method: closing, opening, hole filling, then
 removal of components under four blocks.
@@ -314,8 +317,8 @@ The remediation changes deterministic execution only and preserves the
 computed architecture at the declared input shape. Original failure evidence
 is retained and the replacement uses a fresh recovery ledger. This disclosure
 does not claim learning-rate selection, validation performance, or a held-out
-result; the AlexNet row remains provisional until the ordinary validation-only
-selection and one-time scoring receipts exist.
+result. Validation-only selection and one-time scoring later completed; v1.1
+reports all three locked AlexNet seeds.
 
 For classical estimators, the required parameter-size column is labelled
 **fitted representation scalars (M)**. This is an exact count of numeric values

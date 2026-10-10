@@ -91,11 +91,11 @@ def main() -> None:
     checks["readme_badges_and_links"] = all(
         token in readme for token in ("License: MIT", "actions/workflows/ci.yml", "DOI", "Project website")
     )
-    checks["readme_conspicuous_provisional_release"] = all(
+    checks["readme_conspicuous_v1_1_release"] = all(
         token in readme
         for token in (
-            "v1.0 provisional snapshot", "Any row marked `pending`",
-            "never inferred", "v1.1 update",
+            "v1.1 locked aggregate results", "unavailable row is never inferred",
+            "RA-RUnet alignment", "authenticated aligned checkpoint",
         )
     )
     headline_match = re.search(
@@ -312,9 +312,9 @@ def main() -> None:
         "method_cards": audit.method_cards,
         "abstract_words": len(abstract_words),
         "note": (
-            "v1.0 is a provisional authenticated aggregate snapshot; pending rows are "
-            "explicit and are never inferred. Public synthetic outputs are executable-code "
-            "demonstrations, not benchmark evidence."
+            "v1.1 publishes locked authenticated aggregates; the unavailable aligned "
+            "RA-RUnet row remains explicit and is never inferred. Public synthetic outputs "
+            "are executable-code demonstrations, not benchmark evidence."
         ),
     }
     (ROOT / "release_requirements.json").write_text(

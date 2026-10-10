@@ -1,0 +1,23 @@
+{
+  "contains_biometric_media": false,
+  "contains_per_image_rows": false,
+  "kind": "sd302b.aggregate-public-release.v1",
+  "outputs": {
+    "sd302b_results.csv": {
+      "bytes": 17606,
+      "sha256": "4dde2d8b5412a0535bf83d9c4623d7515c1ae3cd7a08ee6e1b05aba0be3e0711"
+    },
+    "sd302b_table_status.csv": {
+      "bytes": 752,
+      "sha256": "359191e3ead64f3d76cec6340867ec7d52cc4089aafc1b0071a763a41d5b9cba"
+    }
+  },
+  "schema_version": 1,
+  "source_aggregation_receipt_sha256": "5edd8f722e8159319fed3cf7a3995e2302bc427b5d88f3a37d0c450c20610746",
+  "status": "PASS",
+  "tables": {
+    "B1_amendments": 1,
+    "B_plain": 21,
+    "B_rolled": 21
+  }
+}

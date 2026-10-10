@@ -229,6 +229,13 @@ def _read_regular(path: Path, description: str) -> bytes:
 
 def _forbidden_text_reason(value: str) -> str | None:
     """Return why an aggregate cell is unsafe, or ``None`` when it is safe."""
+    if re.fullmatch(
+        r"\s*selection_group:\s*(?:mixed|native)\.[a-z0-9_]+\.seed\d+\s*",
+        value,
+        re.IGNORECASE,
+    ):
+        # Validation-selection group syntax, not a DNS/infrastructure host.
+        return None
     folded = value.casefold()
     forbidden_names = "|".join(sorted(re.escape(item) for item in FORBIDDEN_FIELD_NAMES))
     checks = (

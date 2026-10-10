@@ -13,7 +13,7 @@
     "publication_bridge_is_receipt_and_clean_tree_gated": true,
     "readme_b1_from_aggregate_rows": true,
     "readme_badges_and_links": true,
-    "readme_conspicuous_provisional_release": true,
+    "readme_conspicuous_v1_1_release": true,
     "readme_headline_from_aggregate_rows": true,
     "readme_ten_sections": true,
     "required_repository_structure": true,
@@ -30,7 +30,7 @@
     "validation_handoff_requires_source_completion": true
   },
   "method_cards": 12,
-  "note": "v1.0 is a provisional authenticated aggregate snapshot; pending rows are explicit and are never inferred. Public synthetic outputs are executable-code demonstrations, not benchmark evidence.",
+  "note": "v1.1 publishes locked authenticated aggregates; the unavailable aligned RA-RUnet row remains explicit and is never inferred. Public synthetic outputs are executable-code demonstrations, not benchmark evidence.",
   "schema_version": 1,
   "status": "PASS"
 }

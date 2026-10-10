@@ -288,6 +288,12 @@ def test_rejects_sensitive_strings_in_aggregate_cells(
         MODULE.validate_bundle(bundle)
 
 
+def test_selection_group_is_not_misclassified_as_a_hostname() -> None:
+    assert MODULE._forbidden_text_reason(
+        "selection_group: mixed.unet.seed0"
+    ) is None
+
+
 @pytest.mark.parametrize("name", ["sample.png", "model.pth", "per_image.csv"])
 def test_rejects_every_unlisted_bundle_file(tmp_path: Path, name: str) -> None:
     bundle = _bundle(tmp_path)

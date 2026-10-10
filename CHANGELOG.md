@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.1.0 — 2026-10-11
+
+- Published the final locked latent tables for examiner ROI, examiner value and
+  usable-ridge ground truth, including subject-cluster intervals and declared
+  statistical comparisons.
+- Added the exact canonical SD302g-to-SD302b mapping analysis: 430 rolled test
+  captures from 40 subjects and 9 plain (segmented-slap) captures from 5
+  subjects, reported separately.
+- Published the SD302b minutiae-hull lower-bound tables and image-level
+  stability summaries. Pixel Dice is not reported against the hull, and
+  pairwise Dice is labelled agreement, not accuracy.
+- Added the public Results & Discussion material and refreshed the aggregate
+  tables, figures and project site for the locked release.
+- Kept aligned RA-RUnet explicitly unavailable because no authenticated aligned
+  checkpoint completed before the freeze; no related model was substituted.
+
 ## 1.0.0 — 2026-10-10 (provisional aggregate snapshot)
 
 - Published the first public, aggregate-only benchmark snapshot.

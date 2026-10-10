@@ -2,16 +2,16 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-2563eb.svg)](LICENSE)
 [![CI](https://github.com/Udiation/latent-fingerprint-segmentation-benchmark/actions/workflows/ci.yml/badge.svg)](https://github.com/Udiation/latent-fingerprint-segmentation-benchmark/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/badge/release-v1.0_provisional-f59e0b.svg)](CHANGELOG.md)
+[![Release](https://img.shields.io/badge/release-v1.1-2563eb.svg)](CHANGELOG.md)
 [![DOI](https://img.shields.io/badge/DOI-pending-64748b.svg)](#citation)
 
 A reproducible, subject-disjoint comparison of classical, patch-based,
 encoder–decoder, transformer, and released fingerprint foreground segmenters.
 
-> **Release status — v1.0 provisional snapshot.** Authenticated aggregate
-> results are published where available. Any row marked `pending` is incomplete
-> and is never inferred from validation metrics or another seed. A v1.1 update
-> will regenerate the tables and website when the remaining frozen run finishes.
+> **Release status — v1.1 locked aggregate results.** The latent ROI,
+> usable-ridge, examiner-value and live-scan lower-bound tables are frozen from
+> authenticated aggregate evidence. An unavailable row is never inferred from
+> validation metrics, another seed or a related architecture.
 
 ## TL;DR
 
@@ -22,14 +22,15 @@ encoder–decoder, transformer, and released fingerprint foreground segmenters.
 - Subjects are disjoint across train, validation, and test. Learning rates,
   stopping epochs, thresholds, and post-processing are selected on validation
   data only; the test transaction is single-use for each frozen model.
-- **Headline status:** this provisional snapshot reports completed aggregate
-  rows and labels unfinished rows explicitly; no claim is made from a pending row.
+- **Headline status:** the released SegFormer-B2 substitute and all other scored
+  rows are complete. RA-RUnet alignment remains unreported because no
+  authenticated aligned checkpoint completed before the benchmark freeze.
 
 ## Headline results
 
 Table A values are generated from `results/public_results.csv`. Completed cells
-come from the authenticated aggregate snapshot; pending cells are intentionally
-blank and will be replaced atomically by the v1.1 aggregate update.
+come from the locked authenticated aggregate snapshot; unavailable cells remain
+blank rather than being back-filled from another method.
 
 <!-- BEGIN GENERATED HEADLINE RESULTS -->
 | Family | Approach | Status | Dice | Jaccard | MDR | FDR | Seeds | Params (M) | ms/img (device) |
@@ -54,11 +55,26 @@ blank and will be replaced atomically by the v1.1 aggregate update.
 | Reference | All foreground | complete | 82.98% | 71.84% | 0.00% | 100.00% | 1 | 0.00 | pending (CPU) |
 <!-- END GENERATED HEADLINE RESULTS -->
 
+### Factual reading of the latent tables
+
+- **Table e (public schema: Table A, examiner ROI):** AlexNet recorded 86.46%
+  Dice (95% subject-cluster CI 86.16–86.75%), 80.33% accuracy and 59.75% MIoU.
+  The same table shows the family trade-off directly: RUnet recorded 4.25% MDR
+  with 70.20% FDR, while U-Net recorded 20.95% MDR with 32.78% FDR.
+- **Table e-1 (public schema: Table A-value):** AlexNet Dice was 87.20% for
+  VALUE, 86.49% for LIMITED and 85.86% for NOVALUE impressions, with 95% CIs
+  of 86.74–87.67%, 85.75–87.17% and 85.43–86.28%, respectively.
+- **Table e-2 (public schema: Table A-prime, usable-ridge GT):** random-forest
+  Dice was 81.09% (95% CI 80.22–81.99%). AlexNet moved from rank 1 by Dice
+  under examiner ROI to rank 7 under usable-ridge GT, demonstrating that the
+  reference definition changed the observed ordering.
+
 ### Table 4 — SD302-Exemplar live-scan
 
-This table uses expert-minutiae hulls as a lower-bound reference, so Dice is
-not reported. Only reference-verified aggregate rows contain values; every
-unscored cross-domain row remains explicitly pending.
+This table uses expert-minutiae hulls as a lower-bound reference, so pixel Dice
+is not reported. RA-RUnet alignment is the sole unavailable model row: the
+reason is the absence of an authenticated aligned checkpoint at freeze time,
+not missing live-scan data. The scored no-alignment RUnet is not substituted.
 
 <!-- BEGIN GENERATED B1 RESULTS -->
 | Approach | Status | MC | HR | PAR | OHF | Seeds | Params (M) | ms/img (device) |
@@ -84,6 +100,25 @@ unscored cross-domain row remains explicitly pending.
 | All foreground | complete | 100.00% | 100.00% | 4.30 | 73.23% | 0 | 0.00 | 0.00 (CPU) |
 | Hull as prediction | complete | 100.00% | 100.00% | 1.00 | 0.00% | 0 | 0.00 | 0.00 (CPU) |
 <!-- END GENERATED B1 RESULTS -->
+
+### SD302b rolled and plain lower-bound analysis
+
+Full aggregate tables: [rolled](results/table_b_rolled.md) ·
+[plain (segmented slap)](results/table_b_plain.md)
+
+The released Table b reused the exact canonical SD302g↔SD302b pixel mapping.
+It contains 430 rolled test captures from 40 subjects and 9 “plain” captures
+from 5 subjects; the latter are specifically segmented-slap impressions, so
+that small subset is reported with its capture-semantic qualification.
+
+Latent-trained rows were applied unchanged, making their entries a
+latent-to-live-scan generalisation test; released zero-shot rows retain their
+external training provenance. The minutiae hull is known foreground but not a
+complete foreground mask, so the tables report MC, HR, PAR and OHF and do not
+report pixel Dice. Predicted foreground fraction and inter-method pairwise Dice,
+when used as image-level stability summaries, describe **agreement, not
+accuracy**. RA-RUnet alignment remains pending solely because no authenticated
+aligned checkpoint completed before the freeze.
 
 [Full result schema](results/README.md) · [Protocol](docs/PROTOCOL.md) ·
 [Limitations](docs/LIMITATIONS.md)
@@ -123,9 +158,10 @@ No fingerprint image, annotation, derived mask, per-image metric, or trained
 weight is distributed here.
 
 - **SD302-Latent:** latent images plus examiner ROI and usable-ridge annotations.
-- **SD302-Exemplar:** live-scan exemplars evaluated with expert-minutiae hulls,
-  explicitly treated as a lower-bound region rather than full pixel GT.
-- Manually annotated live-scan and palm endpoints remain conditional on human GT.
+- **SD302-Exemplar / SD302b:** exactly mapped live-scan captures evaluated with
+  expert-minutiae hulls, explicitly treated as a lower-bound region rather than
+  full pixel GT; rolled and segmented-slap captures are reported separately.
+- Full pixel-Dice live-scan and palm endpoints remain conditional on human GT.
 
 See [DATASETS.md](docs/DATASETS.md) for acquisition and reconstruction steps.
 
@@ -158,10 +194,11 @@ CUDA_VISIBLE_DEVICES='' KERAS_BACKEND=torch \
 ```
 
 This slower command uses tiny synthetic-only CPU training budgets. It is an
-executable-code demonstration, not benchmark evidence. FingerNet and
-ImageNet-initialized SegFormer remain explicitly unavailable because their
-pinned external snapshots are not distributed in this repository. Once an
-authorised local SD302 copy is available, each paper
+executable-code demonstration, not benchmark evidence. The public repository
+does not redistribute the external FingerNet or ImageNet initialization
+artifacts; this packaging constraint does not change the complete locked
+FingerNet and SegFormer benchmark rows. Once an authorised local SD302 copy is
+available, each paper
 table has one entry point:
 
 ```bash
@@ -250,7 +287,7 @@ ground-truth-blind B1 delivery path is documented in
   author  = {Narayan, Udit and {TODO: co-authors}},
   title   = {Latent Fingerprint Segmentation Benchmark},
   year    = {2026},
-  version = {v1.0-benchmark},
+  version = {v1.1},
   url     = {https://github.com/Udiation/latent-fingerprint-segmentation-benchmark}
 }
 ```

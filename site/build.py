@@ -18,6 +18,9 @@ from segbench.synthetic_demo import validate_synthetic_demo_receipt
 SITE = ROOT / "site"
 RESULTS = ROOT / "results"
 SYNTHETIC = ROOT / "examples" / "synthetic"
+SD302B_RESULTS = RESULTS / "sd302b_results.csv"
+SD302B_TABLES = RESULTS / "sd302b_table_status.csv"
+SD302B_RECEIPT = RESULTS / "sd302b_release_receipt.json"
 
 APPROVED_RESULT_COLUMNS = {
     "table", "view", "group", "year", "method", "approach", "family",
@@ -132,16 +135,27 @@ METHOD_CATALOG = (
 )
 
 
-def read_csv(path: Path, approved: set[str]) -> list[dict[str, str]]:
+def read_csv(
+    path: Path,
+    approved: set[str],
+    *,
+    signed_columns: set[str] | None = None,
+) -> list[dict[str, str]]:
     """Read a public aggregate CSV with an exact, numeric-safe schema."""
+    signed_columns = signed_columns or set()
     with path.open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
         if set(reader.fieldnames or ()) != approved:
             raise ValueError(f"unexpected columns in {path.name}: {reader.fieldnames}")
         rows = list(reader)
     for row in rows:
-        for key in METRICS:
+        for key in signed_columns:
             if key in row and row[key] != "":
+                value = float(row[key])
+                if not -1 <= value <= 1:
+                    raise ValueError(f"{path.name} {key} outside [-1,1]")
+        for key in METRICS:
+            if key in row and row[key] != "" and key not in signed_columns:
                 value = float(row[key])
                 if not 0 <= value <= 1:
                     raise ValueError(f"{path.name} {key} outside [0,1]")
@@ -151,6 +165,65 @@ def read_csv(path: Path, approved: set[str]) -> list[dict[str, str]]:
                 if value < 0:
                     raise ValueError(f"{path.name} {key} is negative")
     return rows
+
+
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def supplemental_sd302b() -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+    """Load the aggregate-only SD302b supplement after receipt verification."""
+    paths = (SD302B_RESULTS, SD302B_TABLES, SD302B_RECEIPT)
+    if not any(path.exists() for path in paths):
+        return [], []
+    if not all(path.is_file() and not path.is_symlink() for path in paths):
+        raise ValueError("SD302b public supplement is incomplete or contains a symlink")
+    receipt = json.loads(SD302B_RECEIPT.read_text(encoding="utf-8"))
+    if (
+        receipt.get("schema_version") != 1
+        or receipt.get("kind") != "sd302b.aggregate-public-release.v1"
+        or receipt.get("status") != "PASS"
+        or receipt.get("contains_per_image_rows") is not False
+        or receipt.get("contains_biometric_media") is not False
+    ):
+        raise ValueError("SD302b public supplement receipt contract mismatch")
+    outputs = receipt.get("outputs")
+    expected = {SD302B_RESULTS.name, SD302B_TABLES.name}
+    if not isinstance(outputs, dict) or set(outputs) != expected:
+        raise ValueError("SD302b public supplement output inventory mismatch")
+    for path in (SD302B_RESULTS, SD302B_TABLES):
+        record = outputs[path.name]
+        if not isinstance(record, dict) or record.get("sha256") != sha256_file(path):
+            raise ValueError(f"SD302b public supplement digest mismatch: {path.name}")
+        if record.get("bytes") != path.stat().st_size:
+            raise ValueError(f"SD302b public supplement size mismatch: {path.name}")
+    results = read_csv(SD302B_RESULTS, APPROVED_RESULT_COLUMNS)
+    tables = read_csv(
+        SD302B_TABLES, {"table", "title", "status", "note"}
+    )
+    return results, tables
+
+
+def merge_table_status(
+    base: list[dict[str, str]], supplement: list[dict[str, str]]
+) -> list[dict[str, str]]:
+    """Let a receipt-bound amendment replace a status row by table key."""
+    merged = {row["table"]: row for row in base}
+    for row in supplement:
+        merged[row["table"]] = row
+    order = ["A", "A_value", "A_prime", "B1", "B_rolled", "B_plain", "D"]
+    return sorted(merged.values(), key=lambda row: (order.index(row["table"]) if row["table"] in order else 99, row["table"]))
+
+
+def merge_results(
+    base: list[dict[str, str]], supplement: list[dict[str, str]]
+) -> list[dict[str, str]]:
+    """Apply receipt-bound row amendments, then append new endpoint rows."""
+    keys = ("table", "view", "group", "method")
+    merged = {tuple(row[key] for key in keys): row for row in base}
+    for row in supplement:
+        merged[tuple(row[key] for key in keys)] = row
+    return list(merged.values())
 
 
 def _approved_assets(receipt: dict[str, object]) -> dict[str, dict[str, str]]:
@@ -311,19 +384,36 @@ def main() -> None:
     tables = read_csv(
         RESULTS / "table_status.csv", {"table", "title", "status", "note"}
     )
+    sd302b_results, sd302b_tables = supplemental_sd302b()
+    results = merge_results(results, sd302b_results)
+    tables = merge_table_status(tables, sd302b_tables)
     stats = read_csv(
         RESULTS / "statistics.csv",
         {
             "table", "metric", "comparison", "estimate", "ci_lower", "ci_upper",
             "p_holm", "significant", "status",
         },
+        signed_columns={"estimate", "ci_lower", "ci_upper"},
     )
+    # N/A comparisons contain no statistical estimate.  Omit the two legacy
+    # aligned-row explanation strings; the corrected receipt-bound result row
+    # and table note carry the authoritative unavailability reason.
+    if sd302b_results:
+        stats = [
+            row for row in stats
+            if not (
+                row["status"] == "n/a"
+                and "ra_runet_aligned" in row["comparison"]
+            )
+        ]
     synthetic = synthetic_examples()
     public_result_assets = SITE / "assets" / "results"
     public_result_assets.mkdir(parents=True, exist_ok=True)
     shutil.copy2(
         RESULTS / "public_results.csv", public_result_assets / "public_results.csv"
     )
+    if sd302b_results:
+        shutil.copy2(SD302B_RESULTS, public_result_assets / SD302B_RESULTS.name)
     payload = {
         "schema_version": 1,
         "results": results,
@@ -338,15 +428,14 @@ def main() -> None:
     pending_rows = sum(row["status"] == "pending" for row in results)
     if pending_rows:
         release_status = (
-            "<strong>v1.0 provisional snapshot:</strong> "
+            "<strong>v1.1 locked aggregate snapshot:</strong> "
             f"{completed_rows} aggregate rows are complete and {pending_rows} remain pending. "
-            "Missing values are not inferred; v1.1 will refresh this page from the next "
-            "authenticated aggregate bundle."
+            "Missing values are not inferred; unavailable rows remain explicit."
         )
     else:
         release_status = (
-            "<strong>Aggregate snapshot complete:</strong> all published rows in this "
-            "release have completed aggregate results."
+            "<strong>v1.1 locked aggregate snapshot:</strong> all scored rows in this "
+            "release are complete; unavailable rows remain explicit."
         )
     tabs = "".join(
         f'<button id="tab-{escape(row["table"])}" class="tab" role="tab" '
@@ -370,6 +459,12 @@ def main() -> None:
         "and receipt-bound synthetic illustrations only. Licensed biometric samples, per-image "
         "records, trained weights, and private infrastructure details are excluded."
     )
+    discussion_path = ROOT / "docs" / "RESULTS_DISCUSSION.md"
+    discussion = (
+        discussion_path.read_text(encoding="utf-8")
+        if discussion_path.is_file()
+        else "Results and discussion are pending aggregate finalisation."
+    )
     html = f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="segbench-public-safe" content="1"><title>Latent Fingerprint Segmentation Benchmark</title><meta name="description" content="A reproducible subject-disjoint benchmark of fingerprint foreground segmentation methods."><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/style.css"></head>
 <body><header class="top"><nav class="wrap nav" aria-label="Main"><a class="brand" href="#top">SegBench</a><div class="nav-links"><a href="#problem">Problem</a><a href="#pipeline">Pipeline</a><a href="#datasets">Data</a><a href="#methods">Methods</a><a href="#results">Results</a><a href="#demo">Demo</a><a href="#reproduce">Reproduce</a></div><button id="theme-toggle" class="theme" aria-label="Toggle colour theme">Theme</button></nav></header>
@@ -380,6 +475,7 @@ def main() -> None:
 <section id="datasets" class="section"><div class="wrap"><h2>Datasets and ground truth</h2><p class="section-intro">The public repository ships no source fingerprint. Counts and definitions below describe the authorised local evaluation protocol.</p><div class="grid"><article class="card dataset"><h3>SD302-Latent</h3><p>10,092 annotated impressions from 200 subjects. Examiner ROI polygons define Table A; 10,024 complete ridge-quality maps define Table A-prime.</p><p class="meta">136 / 24 / 40 subjects · train / validation / test</p></article><article class="card dataset"><h3>SD302-Exemplar</h3><p>Expert minutiae form a lower-bound convex hull. B1 reports MC, HR, PAR, and OHF—never Dice against the hull.</p></article><article class="card dataset"><h3>Exclusions</h3><p>68 incomplete quality annotations affect A-prime only; two NONPRINT annotations are excluded from test scoring.</p></article></div><figure class="hull-explainer"><img src="assets/hull-explainer.svg" alt="Synthetic ridge pattern with expert minutiae points and their convex hull"><figcaption>A synthetic explanation of the exemplar endpoint: the minutiae hull is known foreground, while ridge area outside it remains unknown.</figcaption></figure></div></section>
 <section id="methods" class="section"><div class="wrap"><h2>Methods</h2><p class="section-intro">Exactly one card represents each Fig. 2 entry. Multi-row entries expand only in the result tables. The dagger marks the declared two-dimensional substitute.</p><div class="grid">{method_cards()}</div></div></section>
 <section id="results" class="section"><div class="wrap"><h2>Interactive results</h2><p class="section-intro">Every value, interval, and significance row below is generated from the same tracked aggregate CSV/JSON payload used by the paper tables. Empty cells are deliberately rendered as pending.</p><div class="tabs" role="tablist" aria-label="Result tables">{tabs}</div><div id="result-panel" role="tabpanel" aria-live="polite"><div class="controls"><label>Metric <select id="metric"><option value="dice">Dice</option><option value="jaccard">Jaccard</option><option value="mdr">MDR</option><option value="fdr">FDR</option><option value="accuracy">Accuracy</option><option value="mc">MC</option><option value="hr">HR</option><option value="par">PAR</option><option value="ohf">OHF</option><option value="ms_per_img">ms/img</option></select></label><label id="group-filter-wrap" hidden>Device / capture group <select id="group-filter"><option value="all">All groups</option></select></label><button id="sort-toggle" class="button" aria-label="High to low">High to low</button></div><div class="table-scroll"><table><thead><tr><th>Approach</th><th>Family</th><th>Status</th><th>Metric and 95% CI</th><th>Seeds</th><th>Params M</th><th>ms/img</th><th>Device</th></tr></thead><tbody id="result-body"></tbody></table></div><h3>Dice–runtime trade-off</h3><div id="pareto" class="chart"></div><h3>Corrected significance</h3><div class="table-scroll significance"><table><thead><tr><th>Metric</th><th>Comparison</th><th>Estimate</th><th>95% CI</th><th>Holm p</th><th>Significant</th><th>Status</th></tr></thead><tbody id="significance-body"></tbody></table></div></div></div></section>
+<section id="discussion" class="section"><div class="wrap"><h2>Results &amp; Discussion</h2><p class="section-intro">The paper-ready text below is generated from the same locked aggregate tables. SD302b hull metrics are lower-bound coverage measures, not pixel-mask accuracy.</p><pre class="paper-text">{escape(discussion)}</pre></div></section>
 <section id="demo" class="section"><div class="wrap"><h2>Synthetic browser demo</h2><p class="section-intro">Choose a generated print and a receipt-bound output. Ground truth is always available; each completed output comes from the named repository implementation after synthetic-train-only fitting where required. These micro-runs demonstrate executable code paths, not relative accuracy or biometric performance.</p>{_synthetic_panel(synthetic)}</div></section>
 <section id="findings" class="section"><div class="wrap"><h2>Findings</h2><ul id="findings-list"><li>Pending aggregate finalisation.</li></ul></div></section>
 <section id="reproduce" class="section"><div class="wrap"><h2>Reproducibility</h2><p class="section-intro">No script downloads biometric data. Supply locally authorised paths and frozen receipts.</p><pre>python -m pip install -r requirements.txt
@@ -398,13 +494,16 @@ python scripts/scan_release.py --phase working --allow-limited-synthetic</pre><p
 }}</pre><button id="copy-cite" class="button">Copy BibTeX</button><h3>Acknowledgements</h3><p>NIST SD302; pyfing; the FingerNet authors; and the Hugging Face SegFormer implementation.</p></div></section></main><footer class="footer"><div class="wrap">Aggregate results and synthetic examples only · no tracking or analytics</div></footer>
 <script id="public-data" type="application/json">{payload_json}</script><script src="assets/app.js"></script></body></html>'''
     (SITE / "index.html").write_text(html, encoding="utf-8")
+    source_paths = [
+        RESULTS / "public_results.csv",
+        RESULTS / "table_status.csv",
+        RESULTS / "statistics.csv",
+    ]
+    if sd302b_results:
+        source_paths.extend((SD302B_RESULTS, SD302B_TABLES, SD302B_RECEIPT))
     source_hashes = {
         path.name: hashlib.sha256(path.read_bytes()).hexdigest()
-        for path in (
-            RESULTS / "public_results.csv",
-            RESULTS / "table_status.csv",
-            RESULTS / "statistics.csv",
-        )
+        for path in source_paths
     }
     manifest = {
         "schema_version": 1,

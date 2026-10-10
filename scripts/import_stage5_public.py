@@ -398,7 +398,18 @@ def _validate_canonical_tables(rows: list[dict[str, str]]) -> None:
         if not groups:
             raise Stage5ImportError(f"canonical B1/{view} group universe is empty")
         for group in sorted(groups):
-            require_method_universe("B1", view, group, HULL_METHODS)
+            has_aligned_placeholder = any(
+                row["method"] == "ra_runet_aligned"
+                for row in rows
+                if row["table"] == "B1" and row["view"] == view
+                and row["group_value"] == group
+            )
+            expected = (
+                HULL_METHODS
+                if has_aligned_placeholder
+                else HULL_METHODS - {"ra_runet_aligned"}
+            )
+            require_method_universe("B1", view, group, expected)
     require_method_universe(
         "D", "latent_to_exemplar", "overall", CROSS_DOMAIN_METHODS,
     )

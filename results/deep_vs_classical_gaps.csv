@@ -1,0 +1,3 @@
+table,metric,status,reason,deep_method,classical_method,deep_family_definition,estimate,ci_low,ci_high,n_images,n_subjects,bootstrap_replicates
+A,dice,ok,,alexnet,gmfs_tuned,"Encoder-decoder,Patch CNN,Transformer",0.06887113262400786,0.06045671751306834,0.07795572511068614,2010,40,1000
+A_prime,dice,ok,,alexnet,rf,"Encoder-decoder,Patch CNN,Transformer",-0.03575337428304846,-0.04926652107178667,-0.023648862108554835,2009,40,1000

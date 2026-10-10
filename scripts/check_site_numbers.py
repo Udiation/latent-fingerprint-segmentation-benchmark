@@ -48,10 +48,43 @@ def main() -> None:
         "table_status.csv": ROOT / "results" / "table_status.csv",
         "statistics.csv": ROOT / "results" / "statistics.csv",
     }
+    supplemental = {
+        "sd302b_results.csv": ROOT / "results" / "sd302b_results.csv",
+        "sd302b_table_status.csv": ROOT / "results" / "sd302b_table_status.csv",
+        "sd302b_release_receipt.json": ROOT / "results" / "sd302b_release_receipt.json",
+    }
+    if any(path.exists() for path in supplemental.values()):
+        if not all(path.is_file() for path in supplemental.values()):
+            raise SystemExit("SD302b supplement is incomplete")
+        sources.update(supplemental)
+    result_rows = read_rows(sources["public_results.csv"])
+    table_rows = read_rows(sources["table_status.csv"])
+    if "sd302b_results.csv" in sources:
+        amendments = read_rows(sources["sd302b_results.csv"])
+        result_key = ("table", "view", "group", "method")
+        by_result = {tuple(row[key] for key in result_key): row for row in result_rows}
+        by_result.update({tuple(row[key] for key in result_key): row for row in amendments})
+        result_rows = list(by_result.values())
+        amendments = read_rows(sources["sd302b_table_status.csv"])
+        by_table = {row["table"]: row for row in table_rows}
+        by_table.update({row["table"]: row for row in amendments})
+        order = ["A", "A_value", "A_prime", "B1", "B_rolled", "B_plain", "D"]
+        table_rows = sorted(
+            by_table.values(),
+            key=lambda row: (order.index(row["table"]) if row["table"] in order else 99, row["table"]),
+        )
+    statistics = read_rows(sources["statistics.csv"])
+    statistics = [
+        row for row in statistics
+        if not (
+            row["status"] == "n/a"
+            and "ra_runet_aligned" in row["comparison"]
+        )
+    ]
     expected = {
-        "results": read_rows(sources["public_results.csv"]),
-        "tables": read_rows(sources["table_status.csv"]),
-        "statistics": read_rows(sources["statistics.csv"]),
+        "results": result_rows,
+        "tables": table_rows,
+        "statistics": statistics,
     }
     for key, rows in expected.items():
         if payload.get(key) != rows:
@@ -66,4 +99,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

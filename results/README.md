@@ -1,15 +1,18 @@
 # Public aggregate results
 
-`public_results.csv` is the only metric source consumed by the public website.
-The v1.0 provisional snapshot publishes authenticated aggregate metrics for
-completed rows and keeps incomplete rows `pending`; it never infers a missing
-test metric. Final imports must be aggregate by method and contain no sample
-identifier. The same controlled import will produce v1.1 when the remaining
-frozen run completes.
+`public_results.csv` contains the canonical Stage-5 aggregate metrics. The
+v1.1 site additionally consumes the receipt-bound aggregate-only SD302b
+supplement in `sd302b_results.csv`; rows are merged by endpoint, view, group,
+and method, so the supplement may amend an explicitly documented unavailable
+reason without altering the canonical Stage-5 evidence. No missing test metric
+is inferred, and no public result file contains a sample identifier.
 
-`table_status.csv` controls which tabs can be rendered. `statistics.csv` holds
-aggregate confidence intervals and corrected tests only. The build and number
-checker reject unapproved columns and non-finite or out-of-range metrics.
+`table_status.csv` and `sd302b_table_status.csv` control which tabs can be
+rendered. `statistics.csv` holds aggregate confidence intervals and corrected
+tests only. `sd302b_release_receipt.json` binds both supplement files to the
+frozen aggregation receipt and declares that they contain neither per-image
+rows nor biometric media. The build and number checker reject unapproved
+columns and non-finite or out-of-range metrics.
 
 ## Fail-closed import
 
@@ -77,7 +80,9 @@ phases.
 The bridge also enforces the preregistered row universe rather than accepting
 an arbitrary non-empty table: all 16 Dataset-1 method rows plus the two
 references must be present for A, A′, and each of VALUE/LIMITED/NOVALUE; B1
-additionally requires the aligned RA-RUnet and hull reference; D requires the
+requires the aligned RA-RUnet overall placeholder and hull reference. The
+unavailable aligned row need not be repeated in device/capture breakdowns
+because no prediction exists to stratify. D requires the
 13 methods trained on SD302-Latent and evaluated on exemplars. Every observed
 B1 group/device/capture bucket must contain that complete applicable method
 set. The receipt also binds `public/release_universe.json`, whose exact

@@ -13,19 +13,21 @@ independent review. They are never attached to the public repository or site.
 
 ## Why are some result cells marked pending?
 
-The v1.0 release is a clearly labelled provisional aggregate snapshot. A
-pending cell means that the frozen training or locked scoring transaction has
-not completed. It is left blank rather than estimated from validation output,
-another seed, or another model. The v1.1 refresh will be generated from the
-next authenticated aggregate bundle.
+The v1.1 release contains the locked latent and live-scan aggregate results.
+Scored method rows are complete. The aligned RA-RUnet row is explicitly
+unavailable because no authenticated aligned checkpoint completed before the
+benchmark freeze; live-scan data were available, and the scored no-alignment
+RUnet is not substituted. Its cells remain blank rather than being estimated
+from validation output, another seed, or another model.
 
 ## Are the browser-demo masks benchmark results?
 
 No. They are deterministic CPU micro-runs on generated ridge patterns. Their
 receipt proves which implementation produced each mask, but their abbreviated
 training budget is only an executable-code demonstration. Methods requiring
-external snapshots that are not distributed here are shown as unavailable;
-the site never fabricates a replacement output.
+external snapshots that are not distributed here may be unavailable in the
+demo even when their locked benchmark rows are complete; the site never
+fabricates a replacement output.
 
 ## How do I add a method?
 

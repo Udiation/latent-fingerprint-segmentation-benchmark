@@ -32,11 +32,10 @@ def test_public_rows_are_aggregate_with_explicit_completion_status() -> None:
     forbidden = {"image_id", "subject_id", "image_path", "mask_path", "filename"}
     assert forbidden.isdisjoint(rows[0])
 
-    pending_a = [row for row in table_a if row["status"] == "pending"]
-    assert [(row["method"], row["seeds_completed"]) for row in pending_a] == [
-        ("segformer_b2", "2")
-    ]
-    assert "training — pending" in pending_a[0]["comment"]
+    assert all(row["status"] == "complete" for row in table_a)
+    assert next(row for row in table_a if row["method"] == "segformer_b2")[
+        "seeds_completed"
+    ] == "3"
 
     table_b1 = [
         row
@@ -45,10 +44,15 @@ def test_public_rows_are_aggregate_with_explicit_completion_status() -> None:
     ]
     assert len(table_b1) == 20
     assert {row["method"] for row in table_b1 if row["status"] == "complete"} == {
-        "gmfs_default", "sufs_zero", "all_background", "all_foreground",
-        "hull_as_prediction",
+        "gmfs_default", "gmfs_tuned", "sufs_zero", "sufs_ft", "fingernet",
+        "svm", "rf", "welm", "unet", "unetpp", "drunet", "r_unet",
+        "lenet", "alexnet", "cnn_ae", "segformer_b2", "all_background",
+        "all_foreground", "hull_as_prediction",
     }
-    assert sum(row["status"] == "pending" for row in table_b1) == 15
+    unavailable = [row for row in table_b1 if row["status"] == "n/a"]
+    assert [(row["method"], row["seeds_completed"]) for row in unavailable] == [
+        ("ra_runet_aligned", "0")
+    ]
     assert all(
         row[key] == ""
         for row in table_b1
@@ -69,10 +73,17 @@ def test_site_build_and_number_match() -> None:
         newline="", encoding="utf-8"
     ) as handle:
         expected_rows = list(csv.DictReader(handle))
-    assert payload["result_rows"] == len(expected_rows)
+    with (ROOT / "results" / "sd302b_results.csv").open(
+        newline="", encoding="utf-8"
+    ) as handle:
+        amendments = list(csv.DictReader(handle))
+    keys = ("table", "view", "group", "method")
+    merged = {tuple(row[key] for key in keys): row for row in expected_rows}
+    merged.update({tuple(row[key] for key in keys): row for row in amendments})
+    assert payload["result_rows"] == len(merged)
     html = (ROOT / "site" / "index.html").read_text(encoding="utf-8")
-    assert "v1.0 provisional snapshot" in html
-    assert "training \\u2014 pending" in html
+    assert "v1.1 locked aggregate snapshot" in html
+    assert "RA-RUnet" in html
     assert "training — pending" in (
         ROOT / "site" / "assets" / "app.js"
     ).read_text(encoding="utf-8")
@@ -293,7 +304,7 @@ def test_normal_final_scan_still_rejects_pending_figures(
     )
 
 
-def test_provisional_receipt_rejects_unbound_output_and_universe_drift(
+def test_superseded_provisional_receipt_rejects_final_output(
     tmp_path: Path,
 ) -> None:
     script = ROOT / "scripts" / "scan_release.py"
@@ -310,24 +321,10 @@ def test_provisional_receipt_rejects_unbound_output_and_universe_drift(
         (result_dir / name).write_bytes((ROOT / "results" / name).read_bytes())
     receipt_path = result_dir / "provisional_release_receipt.json"
     pinned = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
-    verified = module.verify_provisional_release(tmp_path, pinned)
-    assert verified["status"] == "PASS"
-
-    results_path = result_dir / "public_results.csv"
-    original_results = results_path.read_bytes()
-    results_path.write_bytes(original_results + b"\n")
+    # v1.0's receipt remains available for audit, but it must fail closed when
+    # paired with the replaced v1.1 aggregate files.
     with pytest.raises(ValueError, match="not receipt-bound"):
         module.verify_provisional_release(tmp_path, pinned)
-    results_path.write_bytes(original_results)
-
-    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
-    receipt["pending_b1_rows"].remove("unet")
-    receipt_path.write_text(
-        json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
-    drifted = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
-    with pytest.raises(ValueError, match="B1 pending universe changed"):
-        module.verify_provisional_release(tmp_path, drifted)
 
 
 def test_history_scan_rejects_private_commit_message_and_deleted_raster(tmp_path: Path) -> None:

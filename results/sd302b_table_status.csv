@@ -1,0 +1,4 @@
+table,title,status,note
+B1,Table B1 — SD302-Exemplar lower-bound evaluation,complete,Expert-minutiae hull lower-bound endpoint. RA-RUnet alignment is pending because no authenticated aligned checkpoint completed before the benchmark freeze; the no-alignment RUnet is not substituted.
+B_rolled,Table b — SD302b rolled baseline captures,complete,430 exactly mapped test images from 40 subjects; expert-minutiae hull lower bound; latent-trained models are applied cross-domain; pixel Dice is not reported.
+B_plain,Table b — SD302b plain (segmented-slap) baseline captures,complete,9 exactly mapped segmented-slap test images; expert-minutiae hull lower bound; labelled plain with this capture-semantic qualification; pixel Dice is not reported.

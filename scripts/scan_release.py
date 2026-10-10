@@ -33,7 +33,7 @@ RASTER_SUFFIXES = {".png", ".jpg", ".jpeg", ".bmp", ".webp"}
 AGGREGATE_FIGURE_SUFFIXES = {".png", ".pdf"}
 TEXT_SUFFIXES = {
     ".py", ".md", ".txt", ".yaml", ".yml", ".json", ".csv", ".toml",
-    ".cff", ".html", ".css", ".js", ".svg", ".sh", ".ipynb",
+    ".cff", ".html", ".css", ".js", ".svg", ".sh", ".ipynb", ".tex",
 }
 ALLOWED_NON_TEXT_NAMES = {"LICENSE", ".gitignore"}
 PROVISIONAL_RECEIPT_KIND = "provisional_public_bundle_receipt_v1"
@@ -273,8 +273,77 @@ def scan_history(
             errors.append(f"historical raster/PDF lacks approved provenance: {historical_path}")
 
 
-def verify_imported_release(root: Path, package: Path, expected_receipt_sha256: str) -> dict[str, object]:
+def _verify_sd302b_supplement(root: Path) -> None:
+    """Verify the aggregate-only v1.1 presentation amendment."""
+    receipt_path = root / "results" / "sd302b_release_receipt.json"
+    receipt = json.loads(_regular_bytes(receipt_path, "SD302b release receipt"))
+    if (
+        receipt.get("schema_version") != 1
+        or receipt.get("kind") != "sd302b.aggregate-public-release.v1"
+        or receipt.get("status") != "PASS"
+        or receipt.get("contains_per_image_rows") is not False
+        or receipt.get("contains_biometric_media") is not False
+        or receipt.get("source_aggregation_receipt_sha256")
+        != "5edd8f722e8159319fed3cf7a3995e2302bc427b5d88f3a37d0c450c20610746"
+    ):
+        raise Stage5ImportError("SD302b presentation amendment receipt changed")
+    outputs = receipt.get("outputs")
+    expected = {"sd302b_results.csv", "sd302b_table_status.csv"}
+    if not isinstance(outputs, dict) or set(outputs) != expected:
+        raise Stage5ImportError("SD302b presentation amendment inventory changed")
+    for name, identity in outputs.items():
+        path = root / "results" / name
+        if (
+            not isinstance(identity, dict)
+            or identity.get("sha256") != _sha256(_regular_bytes(path, name))
+            or identity.get("bytes") != path.stat().st_size
+        ):
+            raise Stage5ImportError(f"SD302b presentation amendment changed: {name}")
+
+
+def verify_imported_release(
+    root: Path,
+    package: Path,
+    expected_receipt_sha256: str,
+    *,
+    allow_presentation_amendments: bool = False,
+) -> dict[str, object]:
     """Rebuild expected public outputs from the independently pinned package."""
+    if allow_presentation_amendments:
+        # v1.1 retains every scientific/configuration output from the canonical
+        # Stage-5 import, while README/docs/site presentation files are rebuilt
+        # from an independently receipt-bound SD302b aggregate supplement.
+        # Verify the immutable core byte-for-byte and scan the amended
+        # presentation normally below.
+        if _sha256(_regular_bytes(package / "package_receipt.json", "Stage-5 package receipt")) != expected_receipt_sha256:
+            raise Stage5ImportError("Stage-5 package receipt differs from pinned digest")
+        receipt = json.loads(
+            _regular_bytes(root / "results" / "stage5_import_receipt.json", "Stage-5 import receipt")
+        )
+        outputs = receipt.get("outputs")
+        if (
+            receipt.get("schema_version") != 1
+            or receipt.get("kind") != "stage5_public_release_import_receipt_v1"
+            or receipt.get("status") != "PASS"
+            or receipt.get("contains_per_image_rows") is not False
+            or receipt.get("contains_biometric_media") is not False
+            or receipt.get("source_receipt", {}).get("sha256") != expected_receipt_sha256
+            or not isinstance(outputs, dict)
+        ):
+            raise Stage5ImportError("Stage-5 core import receipt changed")
+        presentation = {
+            "README.md", "docs/RESULTS.md", "site/build_manifest.json", "site/index.html",
+        }
+        for relative, digest in outputs.items():
+            if relative in presentation:
+                continue
+            path = root / relative
+            if _sha256(_regular_bytes(path, f"Stage-5 core output {relative}")) != digest:
+                raise Stage5ImportError(f"Stage-5 core output changed: {relative}")
+        _verify_sd302b_supplement(root)
+        return validate_figure_manifest(
+            root, expected_source_receipt_sha256=expected_receipt_sha256,
+        )
     expected = run_import(
         package, expected_receipt_sha256, repo_root=root, dry_run=True,
         require_release_metadata=True,
@@ -482,11 +551,20 @@ def main() -> None:
             if args.phase == "final" and not complete_figures:
                 raise Stage5ImportError("final publication scan requires imported aggregate figures")
             if complete_figures:
-                if not provenance_args:
+                if args.phase == "final" and not provenance_args:
                     raise Stage5ImportError("imported figures require independent Stage-5 source verification")
-                approved_figures = verify_imported_release(
-                    ROOT, args.stage5_package, args.expected_stage5_receipt_sha256,
-                )
+                if provenance_args:
+                    approved_figures = verify_imported_release(
+                        ROOT, args.stage5_package, args.expected_stage5_receipt_sha256,
+                        allow_presentation_amendments=(
+                            ROOT / "results" / "sd302b_release_receipt.json"
+                        ).is_file(),
+                    )
+                else:
+                    # Working/CI scans cannot access the restricted canonical
+                    # package. The tracked manifest still authenticates every
+                    # figure; the final scan independently re-derives it.
+                    approved_figures = validate_figure_manifest(ROOT)
             else:
                 if provenance_args:
                     raise Stage5ImportError("pending release cannot claim a Stage-5 publication source")

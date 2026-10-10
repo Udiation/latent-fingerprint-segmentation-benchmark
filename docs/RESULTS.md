@@ -5,6 +5,31 @@
 All values on this page come from the hash-bound public aggregate bundle.
 No per-image records, biometric media, trained weights, or sample identifiers are imported.
 
+## Locked-result summary
+
+- **Table e (Table A, examiner ROI):** AlexNet recorded 86.46% Dice (95%
+  subject-cluster CI 86.16–86.75%), 80.33% accuracy and 59.75% MIoU. RUnet
+  recorded 4.25% MDR and 70.20% FDR, whereas U-Net recorded 20.95% MDR and
+  32.78% FDR.
+- **Table e-1 (Table A-value):** AlexNet Dice was 87.20% for VALUE, 86.49%
+  for LIMITED and 85.86% for NOVALUE impressions; the corresponding 95% CIs
+  were 86.74–87.67%, 85.75–87.17% and 85.43–86.28%.
+- **Table e-2 (Table A-prime, usable-ridge GT):** random-forest Dice was
+  81.09% (95% CI 80.22–81.99%). AlexNet changed from rank 1 by Dice under the
+  examiner ROI to rank 7 under usable-ridge GT.
+- **SD302b supplement:** the exact canonical SD302g-to-SD302b mapping yielded
+  430 rolled test captures from 40 subjects and 9 plain test captures from 5
+  subjects; the latter are specifically segmented-slap impressions. The hull
+  is a lower bound rather than full pixel GT, so MC, HR, PAR and OHF are
+  reported and pixel Dice is not. Mean pairwise Dice was 60.18% for rolled and
+  72.63% for plain (segmented-slap), and is labelled **agreement, not
+  accuracy**. RA-RUnet alignment remains unavailable because no authenticated
+  aligned checkpoint completed before the freeze, not because live-scan data
+  were missing; the no-alignment RUnet is not substituted.
+
+Full SD302b aggregate tables: [rolled](../results/table_b_rolled.md) ·
+[plain (segmented slap)](../results/table_b_plain.md)
+
 ## Table A: Table A — SD302-Latent examiner ROI
 
 Status: **complete** — Aggregate held-out results for 2010 impressions from 40 subjects; ground truth: examiner ROI polygon; completed seeds per row: 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures.
@@ -118,7 +143,7 @@ Status: **complete** — Aggregate held-out results for 2009 impressions from 40
 
 ## Table B1: Table B1 — SD302-Exemplar lower-bound evaluation
 
-Status: **complete** — Aggregate held-out results for 475 impressions from 40 subjects; ground truth: expert-minutiae convex hull lower bound; completed seeds per row: 0, 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures. Unavailable: RA-RUnet (latent-to-live-scan alignment) -- Required unlabelled SD302b train-subject target data is absent after three documented transfer failures; the frozen protocol forbids an SD302g-only substitute..
+Status: **complete** — Aggregate held-out results for 475 impressions from 40 subjects; ground truth: expert-minutiae convex hull lower bound; completed seeds per row: 0, 1, 3. Thresholds were selected on validation data only; B1/D hull metrics are lower-bound measures. Unavailable: RA-RUnet (latent-to-live-scan alignment) — no authenticated aligned checkpoint completed before the benchmark freeze; live-scan data were available and the no-alignment RUnet is not substituted.
 
 | Approach | Group | Status | Seeds | MC | HR | PAR | OHF | Params (M) | ms/img | Device |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
@@ -389,7 +414,7 @@ Status: **complete** — Aggregate held-out results for 475 impressions from 40 
 | B1 | HR | point estimate: alexnet | 0.9969094453360324 | [0.9958740165882612, 0.9978000562957212] | pending | false | complete |
 | B1 | HR | point estimate: cnn_ae | 0.9943161361562568 | [0.9928086187174028, 0.9957475095823112] | pending | false | complete |
 | B1 | HR | point estimate: segformer_b2 | 0.998277617519716 | [0.996644237315284, 0.999337505517029] | pending | false | complete |
-| B1 | HR | point estimate: ra_runet_aligned — Required unlabelled SD302b train-subject target data is absent after three documented transfer failures; the frozen protocol forbids an SD302g-only substitute. | pending | pending | pending | false | n/a |
+| B1 | HR | point estimate: ra_runet_aligned — no authenticated aligned checkpoint completed before the benchmark freeze; live-scan data were available and the no-alignment RUnet is not substituted. | pending | pending | pending | false | n/a |
 | B1 | HR | point estimate: all_background | 0.0 | [0.0, 0.0] | pending | false | complete |
 | B1 | HR | point estimate: all_foreground | 1.0 | [1.0, 1.0] | pending | false | complete |
 | B1 | HR | point estimate: hull_as_prediction | 1.0 | [1.0, 1.0] | pending | false | complete |
@@ -400,7 +425,7 @@ Status: **complete** — Aggregate held-out results for 475 impressions from 40 
 | B1 | HR | fingernet vs gmfs_tuned | 0.0027435502101864 | [0.0016755401850866, 0.0037805050251401] | 7.889327782931949e-22 | true | complete |
 | B1 | HR | fingernet vs lenet | 0.0002076477293064 | [-0.0005235871365935, 0.000787722193912] | 0.5925643014974926 | false | complete |
 | B1 | HR | fingernet vs ra_runet | 0.0086631635030244 | [0.0070382275896155, 0.0103077851150336] | 7.397283487277047e-73 | true | complete |
-| B1 | HR | fingernet vs ra_runet_aligned — Required unlabelled SD302b train-subject target data is absent after three documented transfer failures; the frozen protocol forbids an SD302g-only substitute. | pending | pending | pending | false | n/a |
+| B1 | HR | fingernet vs ra_runet_aligned — no authenticated aligned checkpoint completed before the benchmark freeze; live-scan data were available and the no-alignment RUnet is not substituted. | pending | pending | pending | false | n/a |
 | B1 | HR | fingernet vs rf | 0.009693742762056 | [0.0073737306694572, 0.0119814216854686] | 8.7893568490981e-47 | true | complete |
 | B1 | HR | fingernet vs segformer_sub | 0.001227994342842 | [-2.4091440736915337e-05, 0.0029183906975403] | 0.7791430417537373 | false | complete |
 | B1 | HR | fingernet vs sufs | 0.0018258246060997 | [0.0009108457965662, 0.0027827558995894] | 3.2495327637503907e-18 | true | complete |
@@ -425,12 +450,15 @@ Status: **complete** — Aggregate held-out results for 475 impressions from 40 
 
 ## Figures
 
-The public figure set is regenerated only from the same aggregate rows. Plots whose required aggregates are incomplete remain **pending**.
+The public figure set is regenerated only from the locked aggregate rows.
 No qualitative fingerprint imagery is published.
 
 ## Factual reading
 
-All 293 aggregate rows in this snapshot are complete.
+All 293 rows in the base locked bundle are complete. The SD302b rolled/plain
+supplement adds 42 aggregate rows, split evenly between its two capture tables;
+the only unavailable model row is the authenticated-checkpoint-gated aligned
+RA-RUnet row described above.
 
 
 Source digests:
