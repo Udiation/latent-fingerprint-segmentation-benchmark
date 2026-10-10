@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
@@ -16,14 +17,47 @@ def run(*parts: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run([sys.executable, *parts], cwd=ROOT, text=True, capture_output=True, check=True)
 
 
-def test_public_rows_are_aggregate_and_pending() -> None:
+def test_public_rows_are_aggregate_with_explicit_completion_status() -> None:
     with (ROOT / "results" / "public_results.csv").open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
-    assert len(rows) == 18
-    assert all(row["table"] == "A" for row in rows)
-    assert all(row["status"] == "pending" for row in rows)
+    table_a = [
+        row
+        for row in rows
+        if row["table"] == "A" and row["view"] == "overall" and row["group"] == "overall"
+    ]
+    assert len(table_a) == 18
+    assert len({row["method"] for row in table_a}) == 18
+    assert {row["status"] for row in rows} <= {"complete", "pending", "n/a"}
+    assert all(row["status"] != "pending" or row["seeds_completed"] != "" for row in rows)
     forbidden = {"image_id", "subject_id", "image_path", "mask_path", "filename"}
     assert forbidden.isdisjoint(rows[0])
+
+    pending_a = [row for row in table_a if row["status"] == "pending"]
+    assert [(row["method"], row["seeds_completed"]) for row in pending_a] == [
+        ("segformer_b2", "2")
+    ]
+    assert "training — pending" in pending_a[0]["comment"]
+
+    table_b1 = [
+        row
+        for row in rows
+        if row["table"] == "B1" and row["view"] == "overall" and row["group"] == "overall"
+    ]
+    assert len(table_b1) == 20
+    assert {row["method"] for row in table_b1 if row["status"] == "complete"} == {
+        "gmfs_default", "sufs_zero", "all_background", "all_foreground",
+        "hull_as_prediction",
+    }
+    assert sum(row["status"] == "pending" for row in table_b1) == 15
+    assert all(
+        row[key] == ""
+        for row in table_b1
+        for key in ("accuracy", "error_rate", "dice", "jaccard", "miou", "mdr", "fdr")
+    )
+    assert all(
+        row["n_images"] == "475" and row["n_subjects"] == "40"
+        for row in table_b1 if row["status"] == "complete"
+    )
 
 
 def test_site_build_and_number_match() -> None:
@@ -31,7 +65,17 @@ def test_site_build_and_number_match() -> None:
     result = run("scripts/check_site_numbers.py")
     payload = json.loads(result.stdout)
     assert payload["status"] == "PASS"
-    assert payload["result_rows"] == 18
+    with (ROOT / "results" / "public_results.csv").open(
+        newline="", encoding="utf-8"
+    ) as handle:
+        expected_rows = list(csv.DictReader(handle))
+    assert payload["result_rows"] == len(expected_rows)
+    html = (ROOT / "site" / "index.html").read_text(encoding="utf-8")
+    assert "v1.0 provisional snapshot" in html
+    assert "training \\u2014 pending" in html
+    assert "training — pending" in (
+        ROOT / "site" / "assets" / "app.js"
+    ).read_text(encoding="utf-8")
     manifest = json.loads((ROOT / "site" / "build_manifest.json").read_text(encoding="utf-8"))
     receipt = json.loads(
         (ROOT / "examples" / "synthetic" / "synthetic_receipt.json").read_text(encoding="utf-8")
@@ -196,6 +240,94 @@ def test_final_scan_clean_tree_probe_distinguishes_committed_and_dirty(tmp_path:
     (tmp_path / "safe.txt").write_text("changed\n", encoding="utf-8")
     dirty, unchanged_head = module.git_tree_status(tmp_path)
     assert dirty is False and unchanged_head == head
+
+
+def test_normal_final_scan_still_rejects_pending_figures(
+    monkeypatch, tmp_path: Path
+) -> None:
+    """The partial-release exception must never weaken normal final."""
+    script = ROOT / "scripts" / "scan_release.py"
+    spec = importlib.util.spec_from_file_location("release_scan_final_mode_test", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    root = tmp_path / "repo"
+    (root / "figures").mkdir(parents=True)
+    (root / "figures" / "figure_manifest.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "kind": "segbench.aggregate-figure-manifest.v1",
+                "status": "pending",
+                "source_receipt": None,
+                "figures": [],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    subprocess.run(["git", "-C", str(root), "add", "."], check=True)
+    subprocess.run(
+        [
+            "git", "-C", str(root), "-c", "user.name=Synthetic Test",
+            "-c", "user.email=synthetic@example.invalid", "commit", "-qm",
+            "synthetic fixture",
+        ],
+        check=True,
+    )
+    module.ROOT = root
+    monkeypatch.setattr(module, "scan_history", lambda *args, **kwargs: None)
+    report = tmp_path / "normal-final.json"
+    monkeypatch.setattr(
+        sys, "argv", ["scan_release.py", "--phase", "final", "--out", str(report)]
+    )
+    with pytest.raises(SystemExit):
+        module.main()
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    assert any(
+        "final publication scan requires imported aggregate figures" in error
+        for error in payload["errors"]
+    )
+
+
+def test_provisional_receipt_rejects_unbound_output_and_universe_drift(
+    tmp_path: Path,
+) -> None:
+    script = ROOT / "scripts" / "scan_release.py"
+    spec = importlib.util.spec_from_file_location("release_scan_provisional_test", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    result_dir = tmp_path / "results"
+    result_dir.mkdir()
+    for name in (
+        "public_results.csv", "statistics.csv", "table_status.csv",
+        "provisional_release_receipt.json",
+    ):
+        (result_dir / name).write_bytes((ROOT / "results" / name).read_bytes())
+    receipt_path = result_dir / "provisional_release_receipt.json"
+    pinned = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+    verified = module.verify_provisional_release(tmp_path, pinned)
+    assert verified["status"] == "PASS"
+
+    results_path = result_dir / "public_results.csv"
+    original_results = results_path.read_bytes()
+    results_path.write_bytes(original_results + b"\n")
+    with pytest.raises(ValueError, match="not receipt-bound"):
+        module.verify_provisional_release(tmp_path, pinned)
+    results_path.write_bytes(original_results)
+
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    receipt["pending_b1_rows"].remove("unet")
+    receipt_path.write_text(
+        json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    drifted = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+    with pytest.raises(ValueError, match="B1 pending universe changed"):
+        module.verify_provisional_release(tmp_path, drifted)
 
 
 def test_history_scan_rejects_private_commit_message_and_deleted_raster(tmp_path: Path) -> None:

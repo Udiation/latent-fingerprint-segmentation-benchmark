@@ -5,52 +5,165 @@
 All values on this page come from the hash-bound public aggregate bundle.
 No per-image records, biometric media, trained weights, or sample identifiers are imported.
 
-## Table A: SD302-Latent · examiner ROI
+## Table A: SD302-Latent, examiner ROI
 
-Status: **pending** — Final aggregate metrics await seed-zero gate
+Status: **pending** — Missing methods or seeds remain explicitly pending.
 
 | Approach | Group | Family | Status | Seeds | Dice | Jaccard | MDR | FDR | Params (M) | ms/img | Device |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| GMFS (default) | overall | Classical | pending | 1 | pending | pending | pending | pending | pending | pending | — |
-| GMFS (val-tuned) | overall | Classical | pending | 1 | pending | pending | pending | pending | pending | pending | — |
-| SVM (Nyström RBF) | overall | Classical | pending | 3 | pending | pending | pending | pending | pending | pending | — |
-| Random forest | overall | Classical | pending | 3 | pending | pending | pending | pending | pending | pending | — |
-| Weighted ELM | overall | Classical | pending | 3 | pending | pending | pending | pending | pending | pending | — |
-| CNN + stacked AE | overall | Patch CNN | pending | 0 | pending | pending | pending | pending | pending | pending | — |
-| AlexNet | overall | Patch CNN | pending | 0 | pending | pending | pending | pending | pending | pending | — |
-| LeNet | overall | Patch CNN | pending | 0 | pending | pending | pending | pending | pending | pending | — |
-| U-Net | overall | Encoder–decoder | pending | 1 | pending | pending | pending | pending | pending | pending | — |
-| UNet++ | overall | Encoder–decoder | pending | 0 | pending | pending | pending | pending | pending | pending | — |
-| DRUnet | overall | Encoder–decoder | pending | 0 | pending | pending | pending | pending | pending | pending | — |
-| RUnet (no alignment) | overall | Encoder–decoder | pending | 0 | pending | pending | pending | pending | pending | pending | — |
-| SegFormer-B2 (substitute†) | overall | Transformer | pending | 0 | pending | pending | pending | pending | pending | pending | — |
-| SUFS (zero-shot) | overall | Pretrained | pending | 1 | pending | pending | pending | pending | pending | pending | — |
-| SUFS (fine-tuned) | overall | Pretrained | pending | 3 | pending | pending | pending | pending | pending | pending | — |
-| FingerNet (pretrained) | overall | Pretrained | pending | 1 | pending | pending | pending | pending | pending | pending | — |
-| All background | overall | Reference | pending | 1 | pending | pending | pending | pending | pending | pending | — |
-| All foreground | overall | Reference | pending | 1 | pending | pending | pending | pending | pending | pending | — |
+| GMFS (default) | overall | Classical | complete | 1 | 75.91% | 62.61% | 25.06% | 43.72% | 0.00 | 15.62 | CPU |
+| GMFS (val-tuned) | overall | Classical | complete | 1 | 79.58% | 67.19% | 15.56% | 60.93% | 0.00 | 15.48 | CPU |
+| SUFS (zero-shot) | overall | Pretrained | complete | 1 | 74.95% | 61.70% | 27.00% | 39.13% | 7.08 | 21.22 | GPU |
+| SUFS (fine-tuned) | overall | Pretrained | complete | 3 | 81.85% ± 0.72% | 70.91% ± 0.76% | 7.71% ± 1.57% | 74.34% ± 10.31% | 7.08 ± 0.00 | 26.17 ± 0.14 | GPU |
+| FingerNet (pretrained) | overall | Pretrained | complete | 1 | 58.93% | 46.45% | 49.94% | 11.54% | 4.71 | 35.51 | GPU |
+| SVM (Nyström RBF) | overall | Classical | complete | 3 | 75.85% ± 0.05% | 62.26% ± 0.07% | 27.91% ± 0.07% | 35.35% ± 0.15% | 1.01 ± 0.00 | 41.57 ± 0.32 | CPU |
+| Random forest | overall | Classical | complete | 3 | 76.82% ± 0.04% | 63.40% ± 0.06% | 26.13% ± 0.09% | 37.35% ± 0.15% | 52.70 ± 0.41 | 58.32 ± 1.03 | CPU |
+| Weighted ELM | overall | Classical | complete | 3 | 75.27% ± 0.19% | 61.57% ± 0.20% | 28.70% ± 0.22% | 35.10% ± 0.07% | 0.01 ± 0.00 | 32.28 ± 0.41 | CPU |
+| U-Net | overall | Encoder-decoder | complete | 3 | 79.50% ± 1.18% | 68.21% ± 0.96% | 20.95% ± 1.68% | 32.78% ± 1.94% | 7.24 ± 0.00 | 29.57 ± 2.46 | GPU |
+| UNet++ | overall | Encoder-decoder | complete | 3 | 78.22% ± 0.58% | 67.49% ± 0.90% | 21.92% ± 3.24% | 33.21% ± 9.46% | 9.16 ± 0.00 | 42.36 ± 12.72 | GPU |
+| DRUnet | overall | Encoder-decoder | complete | 3 | 84.85% ± 0.57% | 74.39% ± 0.83% | 5.17% ± 1.45% | 64.75% ± 9.92% | 8.38 ± 0.00 | 33.40 ± 4.96 | GPU |
+| RUnet (no alignment) | overall | Encoder-decoder | complete | 3 | 84.46% ± 0.33% | 73.97% ± 0.53% | 4.25% ± 1.74% | 70.20% ± 7.11% | 8.38 ± 0.00 | 34.03 ± 7.51 | GPU |
+| LeNet | overall | Patch CNN | complete | 3 | 84.93% ± 0.18% | 74.46% ± 0.27% | 7.00% ± 0.83% | 58.00% ± 2.42% | 0.06 ± 0.00 | 16.76 ± 3.40 | GPU |
+| AlexNet | overall | Patch CNN | complete | 3 | 86.46% ± 0.02% | 76.62% ± 0.03% | 8.68% ± 0.14% | 41.73% ± 0.40% | 2.91 ± 0.00 | 19.22 ± 3.48 | GPU |
+| CNN + stacked AE | overall | Patch CNN | complete | 3 | 83.97% ± 0.07% | 73.08% ± 0.07% | 6.32% ± 0.86% | 69.41% ± 3.04% | 0.16 ± 0.00 | 19.44 ± 3.79 | GPU |
+| SegFormer-B2 (substitute†) | overall | Transformer | training — pending | 2 | 85.19% ± 2.59% | 75.42% ± 3.61% | 5.08% ± 3.39% | 64.65% ± 29.31% | 27.34 ± 0.00 | 33.59 ± 3.88 | GPU |
+| All background | overall | Reference | complete | 1 | 0.00% | 0.00% | 100.00% | 0.00% | 0.00 | pending | CPU |
+| All foreground | overall | Reference | complete | 1 | 82.98% | 71.84% | 0.00% | 100.00% | 0.00 | pending | CPU |
 
-## Table A-value: Examiner-value breakdown
+## Table A-value: SD302-Latent by examiner value
 
-Status: **pending** — Generated after Table A finalisation
+Status: **pending** — Missing methods or seeds remain explicitly pending.
 
-No aggregate rows are published for this table yet.
+| Approach | Group | Family | Status | Seeds | Dice | Jaccard | MDR | FDR | Params (M) | ms/img | Device |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| GMFS (default) | VALUE | Classical | complete | 1 | 75.74% | 62.19% | 28.40% | 35.16% | 0.00 | 15.62 | CPU |
+| GMFS (default) | LIMITED | Classical | complete | 1 | 75.59% | 62.15% | 24.80% | 46.22% | 0.00 | 15.62 | CPU |
+| GMFS (default) | NOVALUE | Classical | complete | 1 | 76.10% | 63.02% | 22.64% | 49.49% | 0.00 | 15.62 | CPU |
+| GMFS (default) | MIXED | Classical | complete | 1 | 83.33% | 72.03% | 8.56% | 68.97% | 0.00 | 15.62 | CPU |
+| GMFS (val-tuned) | VALUE | Classical | complete | 1 | 78.86% | 66.18% | 19.66% | 51.70% | 0.00 | 15.48 | CPU |
+| GMFS (val-tuned) | LIMITED | Classical | complete | 1 | 79.31% | 66.75% | 15.26% | 63.42% | 0.00 | 15.48 | CPU |
+| GMFS (val-tuned) | NOVALUE | Classical | complete | 1 | 80.21% | 68.12% | 12.47% | 67.26% | 0.00 | 15.48 | CPU |
+| GMFS (val-tuned) | MIXED | Classical | complete | 1 | 83.76% | 72.49% | 4.38% | 84.13% | 0.00 | 15.48 | CPU |
+| SUFS (zero-shot) | VALUE | Pretrained | complete | 1 | 74.96% | 61.38% | 29.62% | 33.00% | 7.08 | 21.22 | GPU |
+| SUFS (zero-shot) | LIMITED | Pretrained | complete | 1 | 75.05% | 61.62% | 25.89% | 42.83% | 7.08 | 21.22 | GPU |
+| SUFS (zero-shot) | NOVALUE | Pretrained | complete | 1 | 74.87% | 61.95% | 25.38% | 42.60% | 7.08 | 21.22 | GPU |
+| SUFS (zero-shot) | MIXED | Pretrained | complete | 1 | 79.05% | 65.80% | 18.83% | 53.21% | 7.08 | 21.22 | GPU |
+| SUFS (fine-tuned) | VALUE | Pretrained | complete | 3 | 84.47% ± 0.75% | 73.98% ± 0.99% | 4.15% ± 1.58% | 75.91% ± 10.83% | 7.08 ± 0.00 | 26.17 ± 0.14 | GPU |
+| SUFS (fine-tuned) | LIMITED | Pretrained | complete | 3 | 82.36% ± 0.51% | 71.16% ± 0.62% | 6.48% ± 1.54% | 76.08% ± 9.13% | 7.08 ± 0.00 | 26.17 ± 0.14 | GPU |
+| SUFS (fine-tuned) | NOVALUE | Pretrained | complete | 3 | 79.56% ± 0.79% | 68.36% ± 0.63% | 11.03% ± 1.55% | 72.36% ± 10.40% | 7.08 ± 0.00 | 26.17 ± 0.14 | GPU |
+| SUFS (fine-tuned) | MIXED | Pretrained | complete | 3 | 81.36% ± 3.53% | 70.41% ± 2.64% | 6.39% ± 6.42% | 81.31% ± 12.57% | 7.08 ± 0.00 | 26.17 ± 0.14 | GPU |
+| FingerNet (pretrained) | VALUE | Pretrained | complete | 1 | 78.67% | 66.14% | 28.29% | 17.60% | 4.71 | 35.51 | GPU |
+| FingerNet (pretrained) | LIMITED | Pretrained | complete | 1 | 65.09% | 50.31% | 45.47% | 13.18% | 4.71 | 35.51 | GPU |
+| FingerNet (pretrained) | NOVALUE | Pretrained | complete | 1 | 40.55% | 28.94% | 69.35% | 5.74% | 4.71 | 35.51 | GPU |
+| FingerNet (pretrained) | MIXED | Pretrained | complete | 1 | 82.36% | 70.36% | 16.12% | 41.04% | 4.71 | 35.51 | GPU |
+| SVM (Nyström RBF) | VALUE | Classical | complete | 3 | 75.80% ± 0.05% | 62.14% ± 0.05% | 30.06% ± 0.03% | 29.36% ± 0.07% | 1.01 ± 0.00 | 41.57 ± 0.32 | CPU |
+| SVM (Nyström RBF) | LIMITED | Classical | complete | 3 | 76.16% ± 0.05% | 62.56% ± 0.08% | 26.57% ± 0.18% | 39.63% ± 0.38% | 1.01 ± 0.00 | 41.57 ± 0.32 | CPU |
+| SVM (Nyström RBF) | NOVALUE | Classical | complete | 3 | 75.73% ± 0.09% | 62.18% ± 0.12% | 26.78% ± 0.10% | 38.52% ± 0.13% | 1.01 ± 0.00 | 41.57 ± 0.32 | CPU |
+| SVM (Nyström RBF) | MIXED | Classical | complete | 3 | 81.00% ± 1.02% | 68.82% ± 1.29% | 17.54% ± 1.89% | 48.59% ± 0.68% | 1.01 ± 0.00 | 41.57 ± 0.32 | CPU |
+| Random forest | VALUE | Classical | complete | 3 | 76.61% ± 0.04% | 63.09% ± 0.04% | 28.68% ± 0.05% | 30.82% ± 0.12% | 52.70 ± 0.41 | 58.32 ± 1.03 | CPU |
+| Random forest | LIMITED | Classical | complete | 3 | 77.02% ± 0.14% | 63.58% ± 0.16% | 24.94% ± 0.20% | 41.49% ± 0.17% | 52.70 ± 0.41 | 58.32 ± 1.03 | CPU |
+| Random forest | NOVALUE | Classical | complete | 3 | 76.86% ± 0.06% | 63.51% ± 0.10% | 24.62% ± 0.18% | 41.03% ± 0.39% | 52.70 ± 0.41 | 58.32 ± 1.03 | CPU |
+| Random forest | MIXED | Classical | complete | 3 | 82.16% ± 0.13% | 70.33% ± 0.17% | 16.02% ± 0.32% | 48.12% ± 0.63% | 52.70 ± 0.41 | 58.32 ± 1.03 | CPU |
+| Weighted ELM | VALUE | Classical | complete | 3 | 75.17% ± 0.17% | 61.38% ± 0.21% | 31.04% ± 0.22% | 28.78% ± 0.09% | 0.01 ± 0.00 | 32.28 ± 0.41 | CPU |
+| Weighted ELM | LIMITED | Classical | complete | 3 | 75.65% ± 0.03% | 61.97% ± 0.03% | 27.19% ± 0.09% | 39.79% ± 0.26% | 0.01 ± 0.00 | 32.28 ± 0.41 | CPU |
+| Weighted ELM | NOVALUE | Classical | complete | 3 | 75.15% ± 0.28% | 61.50% ± 0.28% | 27.49% ± 0.34% | 38.37% ± 0.12% | 0.01 ± 0.00 | 32.28 ± 0.41 | CPU |
+| Weighted ELM | MIXED | Classical | complete | 3 | 81.56% ± 0.48% | 69.52% ± 0.62% | 16.82% ± 0.64% | 48.06% ± 0.25% | 0.01 ± 0.00 | 32.28 ± 0.41 | CPU |
+| U-Net | VALUE | Encoder-decoder | complete | 3 | 84.01% ± 0.57% | 73.30% ± 1.00% | 14.28% ± 0.53% | 37.94% ± 2.08% | 7.24 ± 0.00 | 29.57 ± 2.46 | GPU |
+| U-Net | LIMITED | Encoder-decoder | complete | 3 | 80.05% ± 1.24% | 68.39% ± 1.15% | 20.70% ± 1.66% | 32.57% ± 1.73% | 7.24 ± 0.00 | 29.57 ± 2.46 | GPU |
+| U-Net | NOVALUE | Encoder-decoder | complete | 3 | 75.69% ± 2.37% | 64.08% ± 2.30% | 26.35% ± 3.39% | 28.69% ± 2.37% | 7.24 ± 0.00 | 29.57 ± 2.46 | GPU |
+| U-Net | MIXED | Encoder-decoder | complete | 3 | 76.07% ± 5.36% | 63.71% ± 5.74% | 27.17% ± 6.15% | 30.85% ± 2.17% | 7.24 ± 0.00 | 29.57 ± 2.46 | GPU |
+| UNet++ | VALUE | Encoder-decoder | complete | 3 | 84.71% ± 0.36% | 74.61% ± 0.57% | 12.84% ± 2.93% | 39.42% ± 9.74% | 9.16 ± 0.00 | 42.36 ± 12.72 | GPU |
+| UNet++ | LIMITED | Encoder-decoder | complete | 3 | 78.88% ± 0.77% | 67.52% ± 1.03% | 21.66% ± 3.37% | 33.71% ± 10.12% | 9.16 ± 0.00 | 42.36 ± 12.72 | GPU |
+| UNet++ | NOVALUE | Encoder-decoder | complete | 3 | 72.75% ± 0.75% | 61.76% ± 1.20% | 29.31% ± 3.51% | 27.99% ± 9.05% | 9.16 ± 0.00 | 42.36 ± 12.72 | GPU |
+| UNet++ | MIXED | Encoder-decoder | complete | 3 | 78.83% ± 3.26% | 66.51% ± 3.66% | 23.39% ± 2.45% | 34.85% ± 5.54% | 9.16 ± 0.00 | 42.36 ± 12.72 | GPU |
+| DRUnet | VALUE | Encoder-decoder | complete | 3 | 85.67% ± 0.59% | 75.51% ± 0.89% | 3.57% ± 1.09% | 68.23% ± 8.47% | 8.38 ± 0.00 | 33.40 ± 4.96 | GPU |
+| DRUnet | LIMITED | Encoder-decoder | complete | 3 | 84.77% ± 0.71% | 74.17% ± 1.03% | 5.01% ± 1.55% | 66.10% ± 10.80% | 8.38 ± 0.00 | 33.40 ± 4.96 | GPU |
+| DRUnet | NOVALUE | Encoder-decoder | complete | 3 | 84.20% ± 0.51% | 73.55% ± 0.73% | 6.55% ± 1.70% | 61.34% ± 10.80% | 8.38 ± 0.00 | 33.40 ± 4.96 | GPU |
+| DRUnet | MIXED | Encoder-decoder | complete | 3 | 85.73% ± 0.84% | 75.45% ± 1.28% | 2.42% ± 1.74% | 74.13% ± 11.91% | 8.38 ± 0.00 | 33.40 ± 4.96 | GPU |
+| RUnet (no alignment) | VALUE | Encoder-decoder | complete | 3 | 85.51% ± 0.46% | 75.30% ± 0.67% | 2.84% ± 0.82% | 72.09% ± 5.56% | 8.38 ± 0.00 | 34.03 ± 7.51 | GPU |
+| RUnet (no alignment) | LIMITED | Encoder-decoder | complete | 3 | 84.51% ± 0.34% | 73.85% ± 0.52% | 3.55% ± 1.43% | 73.32% ± 6.68% | 8.38 ± 0.00 | 34.03 ± 7.51 | GPU |
+| RUnet (no alignment) | NOVALUE | Encoder-decoder | complete | 3 | 83.58% ± 0.54% | 72.93% ± 0.80% | 5.66% ± 2.66% | 67.47% ± 8.82% | 8.38 ± 0.00 | 34.03 ± 7.51 | GPU |
+| RUnet (no alignment) | MIXED | Encoder-decoder | complete | 3 | 85.55% ± 0.48% | 75.12% ± 0.74% | 2.12% ± 1.64% | 77.21% ± 8.26% | 8.38 ± 0.00 | 34.03 ± 7.51 | GPU |
+| LeNet | VALUE | Patch CNN | complete | 3 | 85.38% ± 0.16% | 75.02% ± 0.25% | 6.49% ± 0.89% | 59.74% ± 2.86% | 0.06 ± 0.00 | 16.76 ± 3.40 | GPU |
+| LeNet | LIMITED | Patch CNN | complete | 3 | 84.93% ± 0.15% | 74.37% ± 0.21% | 6.42% ± 0.75% | 60.42% ± 2.85% | 0.06 ± 0.00 | 16.76 ± 3.40 | GPU |
+| LeNet | NOVALUE | Patch CNN | complete | 3 | 84.55% ± 0.23% | 74.01% ± 0.33% | 7.63% ± 0.81% | 55.68% ± 1.95% | 0.06 ± 0.00 | 16.76 ± 3.40 | GPU |
+| LeNet | MIXED | Patch CNN | complete | 3 | 86.15% ± 0.11% | 76.08% ± 0.22% | 4.64% ± 0.43% | 61.77% ± 1.92% | 0.06 ± 0.00 | 16.76 ± 3.40 | GPU |
+| AlexNet | VALUE | Patch CNN | complete | 3 | 87.20% ± 0.04% | 77.74% ± 0.06% | 7.08% ± 0.14% | 44.54% ± 0.53% | 2.91 ± 0.00 | 19.22 ± 3.48 | GPU |
+| AlexNet | LIMITED | Patch CNN | complete | 3 | 86.49% ± 0.05% | 76.61% ± 0.09% | 8.51% ± 0.06% | 42.84% ± 0.09% | 2.91 ± 0.00 | 19.22 ± 3.48 | GPU |
+| AlexNet | NOVALUE | Patch CNN | complete | 3 | 85.86% ± 0.06% | 75.72% ± 0.09% | 10.04% ± 0.22% | 39.03% ± 0.44% | 2.91 ± 0.00 | 19.22 ± 3.48 | GPU |
+| AlexNet | MIXED | Patch CNN | complete | 3 | 87.23% ± 0.03% | 77.81% ± 0.09% | 8.24% ± 0.44% | 43.99% ± 0.80% | 2.91 ± 0.00 | 19.22 ± 3.48 | GPU |
+| CNN + stacked AE | VALUE | Patch CNN | complete | 3 | 84.78% ± 0.09% | 74.15% ± 0.11% | 6.00% ± 0.80% | 67.94% ± 3.72% | 0.16 ± 0.00 | 19.44 ± 3.79 | GPU |
+| CNN + stacked AE | LIMITED | Patch CNN | complete | 3 | 83.97% ± 0.06% | 72.95% ± 0.09% | 5.72% ± 0.73% | 71.62% ± 2.62% | 0.16 ± 0.00 | 19.44 ± 3.79 | GPU |
+| CNN + stacked AE | NOVALUE | Patch CNN | complete | 3 | 83.29% ± 0.22% | 72.24% ± 0.24% | 6.82% ± 1.02% | 69.82% ± 2.71% | 0.16 ± 0.00 | 19.44 ± 3.79 | GPU |
+| CNN + stacked AE | MIXED | Patch CNN | complete | 3 | 85.88% ± 0.25% | 75.64% ± 0.41% | 4.92% ± 0.74% | 65.97% ± 2.51% | 0.16 ± 0.00 | 19.44 ± 3.79 | GPU |
+| SegFormer-B2 (substitute†) | VALUE | Transformer | training — pending | 2 | 86.85% ± 2.53% | 77.47% ± 3.95% | 3.61% ± 4.08% | 63.78% ± 32.55% | 27.34 ± 0.00 | 33.59 ± 3.88 | GPU |
+| SegFormer-B2 (substitute†) | LIMITED | Transformer | training — pending | 2 | 85.16% ± 2.83% | 75.17% ± 4.00% | 4.53% ± 3.20% | 66.42% ± 28.58% | 27.34 ± 0.00 | 33.59 ± 3.88 | GPU |
+| SegFormer-B2 (substitute†) | NOVALUE | Transformer | training — pending | 2 | 83.85% ± 2.56% | 73.83% ± 3.19% | 6.48% ± 2.90% | 64.74% ± 26.94% | 27.34 ± 0.00 | 33.59 ± 3.88 | GPU |
+| SegFormer-B2 (substitute†) | MIXED | Transformer | training — pending | 2 | 87.47% ± 3.38% | 78.11% ± 5.20% | 3.34% ± 3.31% | 61.66% ± 30.76% | 27.34 ± 0.00 | 33.59 ± 3.88 | GPU |
+| All background | VALUE | Reference | complete | 1 | 0.00% | 0.00% | 100.00% | 0.00% | 0.00 | pending | CPU |
+| All background | LIMITED | Reference | complete | 1 | 0.00% | 0.00% | 100.00% | 0.00% | 0.00 | pending | CPU |
+| All background | NOVALUE | Reference | complete | 1 | 0.00% | 0.00% | 100.00% | 0.00% | 0.00 | pending | CPU |
+| All background | MIXED | Reference | complete | 1 | 0.00% | 0.00% | 100.00% | 0.00% | 0.00 | pending | CPU |
+| All foreground | VALUE | Reference | complete | 1 | 83.57% | 72.53% | 0.00% | 100.00% | 0.00 | pending | CPU |
+| All foreground | LIMITED | Reference | complete | 1 | 82.95% | 71.62% | 0.00% | 100.00% | 0.00 | pending | CPU |
+| All foreground | NOVALUE | Reference | complete | 1 | 82.52% | 71.36% | 0.00% | 100.00% | 0.00 | pending | CPU |
+| All foreground | MIXED | Reference | complete | 1 | 83.33% | 71.85% | 0.00% | 100.00% | 0.00 | pending | CPU |
 
-## Table A′: SD302-Latent · usable-ridge GT
+## Table A′: SD302-Latent, usable-ridge area
 
-Status: **pending** — Uses the same frozen Table A predictions
+Status: **pending** — Missing methods or seeds remain explicitly pending.
 
-No aggregate rows are published for this table yet.
+| Approach | Group | Family | Status | Seeds | Dice | Jaccard | MDR | FDR | Params (M) | ms/img | Device |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| GMFS (default) | overall | Classical | complete | 1 | 79.65% | 67.87% | 13.29% | 41.31% | 0.00 | 15.62 | CPU |
+| GMFS (val-tuned) | overall | Classical | complete | 1 | 78.36% | 66.11% | 6.80% | 58.98% | 0.00 | 15.48 | CPU |
+| SUFS (zero-shot) | overall | Pretrained | complete | 1 | 78.98% | 67.20% | 14.92% | 38.09% | 7.08 | 21.22 | GPU |
+| SUFS (fine-tuned) | overall | Pretrained | complete | 3 | 71.56% ± 1.75% | 57.59% ± 1.93% | 6.13% ± 0.93% | 79.76% ± 7.85% | 7.08 ± 0.00 | 26.17 ± 0.14 | GPU |
+| FingerNet (pretrained) | overall | Pretrained | complete | 1 | 64.42% | 52.60% | 39.91% | 13.67% | 4.71 | 35.51 | GPU |
+| SVM (Nyström RBF) | overall | Classical | complete | 3 | 80.97% ± 0.15% | 69.55% ± 0.17% | 13.89% ± 0.07% | 32.95% ± 0.08% | 1.01 ± 0.00 | 41.57 ± 0.32 | CPU |
+| Random forest | overall | Classical | complete | 3 | 81.09% ± 0.04% | 69.66% ± 0.03% | 12.52% ± 0.06% | 35.18% ± 0.13% | 52.70 ± 0.41 | 58.32 ± 1.03 | CPU |
+| Weighted ELM | overall | Classical | complete | 3 | 80.84% ± 0.08% | 69.40% ± 0.10% | 14.62% ± 0.23% | 32.50% ± 0.09% | 0.01 ± 0.00 | 32.28 ± 0.41 | CPU |
+| U-Net | overall | Encoder-decoder | complete | 3 | 72.33% ± 2.67% | 58.90% ± 3.02% | 16.56% ± 3.01% | 43.42% ± 2.42% | 7.24 ± 0.00 | 29.57 ± 2.46 | GPU |
+| UNet++ | overall | Encoder-decoder | complete | 3 | 69.45% ± 1.58% | 55.93% ± 1.68% | 19.17% ± 1.76% | 46.34% ± 9.19% | 9.16 ± 0.00 | 42.36 ± 12.72 | GPU |
+| DRUnet | overall | Encoder-decoder | complete | 3 | 74.74% ± 0.94% | 61.19% ± 1.26% | 3.24% ± 0.99% | 73.01% ± 8.46% | 8.38 ± 0.00 | 33.40 ± 4.96 | GPU |
+| RUnet (no alignment) | overall | Encoder-decoder | complete | 3 | 73.73% ± 0.39% | 59.96% ± 0.47% | 2.92% ± 1.40% | 78.82% ± 5.82% | 8.38 ± 0.00 | 34.03 ± 7.51 | GPU |
+| LeNet | overall | Patch CNN | complete | 3 | 76.28% ± 0.51% | 63.17% ± 0.63% | 3.53% ± 0.22% | 65.82% ± 2.29% | 0.06 ± 0.00 | 16.76 ± 3.40 | GPU |
+| AlexNet | overall | Patch CNN | complete | 3 | 77.52% ± 0.16% | 64.63% ± 0.19% | 5.45% ± 0.04% | 54.47% ± 0.39% | 2.91 ± 0.00 | 19.22 ± 3.48 | GPU |
+| CNN + stacked AE | overall | Patch CNN | complete | 3 | 74.83% ± 0.57% | 61.26% ± 0.68% | 3.32% ± 0.35% | 73.72% ± 2.62% | 0.16 ± 0.00 | 19.44 ± 3.79 | GPU |
+| SegFormer-B2 (substitute†) | overall | Transformer | training — pending | 2 | 74.58% ± 4.38% | 61.29% ± 5.41% | 3.67% ± 1.63% | 72.91% ± 22.82% | 27.34 ± 0.00 | 33.59 ± 3.88 | GPU |
+| All background | overall | Reference | complete | 1 | 0.00% | 0.00% | 100.00% | 0.00% | 0.00 | pending | CPU |
+| All foreground | overall | Reference | complete | 1 | 71.30% | 57.03% | 0.00% | 100.00% | 0.00 | pending | CPU |
 
-## Table B1: SD302-Exemplar · minutiae-hull lower bound
+## Table B1: SD302-Exemplar, minutiae-hull lower bound
 
-Status: **pending** — Reports MC HR PAR and OHF rather than Dice
+Status: **pending** — Two methods and three references are reference-verified; all other B1 rows remain pending.
 
-No aggregate rows are published for this table yet.
+| Approach | Group | Status | Seeds | MC | HR | PAR | OHF | Params (M) | ms/img | Device |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| GMFS (default) | overall | complete | 1 | 99.62% | 99.41% | 1.45 | 27.83% | 0.00 | 28.40 | CPU |
+| GMFS (val-tuned) | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| SUFS (zero-shot) | overall | complete | 1 | 99.90% | 99.77% | 1.51 | 30.32% | 7.08 | 1142.40 | CPU |
+| SUFS (fine-tuned) | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| FingerNet (pretrained) | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| SVM (Nyström RBF) | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| Random forest | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| Weighted ELM | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| U-Net | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| UNet++ | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| DRUnet | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| RUnet (no alignment) | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| LeNet | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| AlexNet | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| CNN + stacked AE | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| SegFormer-B2 (substitute†) | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| RA-RUnet (aligned) | overall | pending | 0 | pending | pending | pending | pending | pending | pending | — |
+| All background | overall | complete | 1 | 0.00% | 0.00% | 0.00 | 0.00% | pending | pending | — |
+| All foreground | overall | complete | 1 | 100.00% | 100.00% | 4.29 | 73.23% | pending | pending | — |
+| Hull as prediction | overall | complete | 1 | 100.00% | 100.00% | 1.00 | 0.00% | pending | pending | — |
 
 ## Table D: Cross-domain summary
 
-Status: **pending** — Generated after Dataset 2 evaluation
+Status: **pending** — Not included in this Dataset-1 partial snapshot.
 
 No aggregate rows are published for this table yet.
 
@@ -58,21 +171,24 @@ No aggregate rows are published for this table yet.
 
 | Table | Metric | Comparison | Estimate | 95% CI | Holm p | Significant | Status |
 |---|---|---|---:|---:|---:|---:|---|
-| A | dice | pending | pending | pending | pending | pending | pending |
-| B1 | hr | pending | pending | pending | pending | pending | pending |
+| A | dice | Pending completed-seed statistics | pending | pending | pending | pending | pending |
+| A_value | dice | Pending completed-seed statistics | pending | pending | pending | pending | pending |
+| A_prime | dice | Pending completed-seed statistics | pending | pending | pending | pending | pending |
+| B1 | hr | Pending completed-seed statistics | pending | pending | pending | pending | pending |
+| D | hr | Pending completed-seed statistics | pending | pending | pending | pending | pending |
 
 ## Figures
 
-The public figure set is regenerated only from the same aggregate rows. Until complete aggregates are imported, the Dice distribution, runtime trade-off, examiner-value, and exemplar-device plots remain **pending**.
+The public figure set is regenerated only from the same aggregate rows. Plots whose required aggregates are incomplete remain **pending**.
 No qualitative fingerprint imagery is published.
 
 ## Factual reading
 
-Result-dependent statements remain **pending**. The release process does not publish a headline claim from partial rows.
+This v1.0 provisional snapshot contains 107 completed aggregate rows and 21 pending rows. Completed values are published exactly as supplied by the authenticated bundle; missing values are not inferred. The v1.1 refresh will use the next authenticated aggregate bundle.
 
 
 Source digests:
 
-- `public_results.csv`: `35820be4e3e940918c18046cf1a894b6eda9c631b470a5c636e96d9762b4da3d`
-- `statistics.csv`: `6d978d65665669028638f9f21f6e22990fc1ba87cee7bf2559a98d874f8f1574`
-- `table_status.csv`: `2c853f6146b16eb55c904752adb0d294018b4df69fd061e30e6ef3e392987567`
+- `public_results.csv`: `c90b0ab47ce7cb0de032c19ae38cb57cfea48988063a0acd161839a9e77e75bc`
+- `statistics.csv`: `f3aada459b4c470d557ea1e20df0ed1cde78c2b32842f709f5963610b1b22db6`
+- `table_status.csv`: `9901925d9be1d19f6e6587004314d2b282a043db9399d00c6cd6434c822c7243`

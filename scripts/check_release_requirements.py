@@ -91,7 +91,13 @@ def main() -> None:
     checks["readme_badges_and_links"] = all(
         token in readme for token in ("License: MIT", "actions/workflows/ci.yml", "DOI", "Project website")
     )
-    checks["readme_no_claimed_partial_result"] = "Headline finding:** pending" in readme
+    checks["readme_conspicuous_provisional_release"] = all(
+        token in readme
+        for token in (
+            "v1.0 provisional snapshot", "Any row marked `pending`",
+            "never inferred", "v1.1 update",
+        )
+    )
     headline_match = re.search(
         r"<!-- BEGIN GENERATED HEADLINE RESULTS -->(.*?)<!-- END GENERATED HEADLINE RESULTS -->",
         readme,
@@ -109,6 +115,22 @@ def main() -> None:
     checks["readme_headline_from_aggregate_rows"] = bool(headline_match) and all(
         f"| {row['family']} | {row['approach']} |" in headline for row in public_rows
     ) and headline.count("\n|") == len(public_rows) + 2
+    b1_match = re.search(
+        r"<!-- BEGIN GENERATED B1 RESULTS -->(.*?)<!-- END GENERATED B1 RESULTS -->",
+        readme,
+        re.S,
+    )
+    b1_rows = [
+        row
+        for row in csv.DictReader(
+            (ROOT / "results" / "public_results.csv").open(newline="", encoding="utf-8")
+        )
+        if row["table"] == "B1" and row["view"] == "overall" and row["group"] == "overall"
+    ]
+    b1_headline = b1_match.group(1) if b1_match else ""
+    checks["readme_b1_from_aggregate_rows"] = bool(b1_match) and all(
+        f"| {row['approach']} |" in b1_headline for row in b1_rows
+    ) and b1_headline.count("\n|") == len(b1_rows) + 2
 
     builder = _load_builder()
     catalog = tuple(builder.METHOD_CATALOG)
@@ -290,8 +312,9 @@ def main() -> None:
         "method_cards": audit.method_cards,
         "abstract_words": len(abstract_words),
         "note": (
-            "Result-dependent metrics and publication remain gated. Public synthetic "
-            "outputs are executable-code demonstrations, not benchmark evidence."
+            "v1.0 is a provisional authenticated aggregate snapshot; pending rows are "
+            "explicit and are never inferred. Public synthetic outputs are executable-code "
+            "demonstrations, not benchmark evidence."
         ),
     }
     (ROOT / "release_requirements.json").write_text(

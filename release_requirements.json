@@ -11,9 +11,10 @@
     "method_cards_have_required_fields": true,
     "private_demo_is_receipt_authenticated": true,
     "publication_bridge_is_receipt_and_clean_tree_gated": true,
+    "readme_b1_from_aggregate_rows": true,
     "readme_badges_and_links": true,
+    "readme_conspicuous_provisional_release": true,
     "readme_headline_from_aggregate_rows": true,
-    "readme_no_claimed_partial_result": true,
     "readme_ten_sections": true,
     "required_repository_structure": true,
     "seed0_handoff_is_runtime_policy_bound": true,
@@ -29,7 +30,7 @@
     "validation_handoff_requires_source_completion": true
   },
   "method_cards": 12,
-  "note": "Result-dependent metrics and publication remain gated. Public synthetic outputs are executable-code demonstrations, not benchmark evidence.",
+  "note": "v1.0 is a provisional authenticated aggregate snapshot; pending rows are explicit and are never inferred. Public synthetic outputs are executable-code demonstrations, not benchmark evidence.",
   "schema_version": 1,
   "status": "PASS"
 }

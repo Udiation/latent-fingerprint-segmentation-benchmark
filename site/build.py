@@ -334,6 +334,20 @@ def main() -> None:
     payload_json = json.dumps(
         payload, ensure_ascii=True, separators=(",", ":")
     ).replace("</", "<\\/")
+    completed_rows = sum(row["status"] == "complete" for row in results)
+    pending_rows = sum(row["status"] == "pending" for row in results)
+    if pending_rows:
+        release_status = (
+            "<strong>v1.0 provisional snapshot:</strong> "
+            f"{completed_rows} aggregate rows are complete and {pending_rows} remain pending. "
+            "Missing values are not inferred; v1.1 will refresh this page from the next "
+            "authenticated aggregate bundle."
+        )
+    else:
+        release_status = (
+            "<strong>Aggregate snapshot complete:</strong> all published rows in this "
+            "release have completed aggregate results."
+        )
     tabs = "".join(
         f'<button id="tab-{escape(row["table"])}" class="tab" role="tab" '
         f'data-table="{escape(row["table"])}" aria-controls="result-panel" '
@@ -359,7 +373,7 @@ def main() -> None:
     html = f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="segbench-public-safe" content="1"><title>Latent Fingerprint Segmentation Benchmark</title><meta name="description" content="A reproducible subject-disjoint benchmark of fingerprint foreground segmentation methods."><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/style.css"></head>
 <body><header class="top"><nav class="wrap nav" aria-label="Main"><a class="brand" href="#top">SegBench</a><div class="nav-links"><a href="#problem">Problem</a><a href="#pipeline">Pipeline</a><a href="#datasets">Data</a><a href="#methods">Methods</a><a href="#results">Results</a><a href="#demo">Demo</a><a href="#reproduce">Reproduce</a></div><button id="theme-toggle" class="theme" aria-label="Toggle colour theme">Theme</button></nav></header>
-<main id="top"><section class="hero"><div class="wrap"><p class="eyebrow">Fingerprint segmentation · reproducible evaluation</p><h1>One split. One evaluator. Twelve method entries.</h1><p class="lede">A validation-selected comparison of classical, patch, encoder–decoder, transformer, and released segmentation methods on examiner-annotated latent fingerprints.</p><p class="authors">Udit Narayan · TODO: co-authors · Affiliation TODO</p><div class="buttons"><span class="button" aria-disabled="true">Paper pending</span><a class="button primary" href="https://github.com/Udiation/latent-fingerprint-segmentation-benchmark">Code</a><a class="button" href="assets/results/public_results.csv">Results CSV</a><a class="button" href="#citation">Cite</a></div><p class="status"><strong>Results pending:</strong> public metrics remain blank until the preregistered seed-zero completion gate.</p></div></section>
+<main id="top"><section class="hero"><div class="wrap"><p class="eyebrow">Fingerprint segmentation · reproducible evaluation</p><h1>One split. One evaluator. Twelve method entries.</h1><p class="lede">A validation-selected comparison of classical, patch, encoder–decoder, transformer, and released segmentation methods on examiner-annotated latent fingerprints.</p><p class="authors">Udit Narayan · TODO: co-authors · Affiliation TODO</p><div class="buttons"><span class="button" aria-disabled="true">Paper pending</span><a class="button primary" href="https://github.com/Udiation/latent-fingerprint-segmentation-benchmark">Code</a><a class="button" href="assets/results/public_results.csv">Results CSV</a><a class="button" href="#citation">Cite</a></div><p class="status">{release_status}</p></div></section>
 <section class="section" id="abstract"><div class="wrap"><h2>Abstract</h2><p class="section-intro">{escape(abstract)}</p></div></section>
 <section id="problem" class="section"><div class="wrap"><h2>The problem</h2><p class="section-intro">Background texture can create false ridge evidence; overly tight masks can remove usable minutiae. The benchmark measures both missed foreground and false background detection while preserving the distinction between an examiner ROI and a usable-ridge map.</p><div class="synthetic-problem"><img src="assets/synthetic/source-1.png" alt="Generated ridge-pattern example"><img src="assets/synthetic/mask-1.png" alt="Generated foreground mask"><p class="meta">Generated illustration only; no biometric data.</p></div></div></section>
 <section id="pipeline" class="section"><div class="wrap"><h2>Pipeline</h2><p class="section-intro">All methods share the same study units, split, physical resolution, validation boundary, and evaluator.</p><img class="pipeline" src="assets/pipeline.svg" alt="Benchmark pipeline from licensed data through examiner GT, subject split, methods, evaluation and statistics"></div></section>

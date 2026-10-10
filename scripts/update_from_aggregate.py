@@ -37,6 +37,8 @@ MAX_INPUT_BYTES = 5 * 1024 * 1024
 LOWER_HEX = set("0123456789abcdef")
 README_RESULTS_START = "<!-- BEGIN GENERATED HEADLINE RESULTS -->"
 README_RESULTS_END = "<!-- END GENERATED HEADLINE RESULTS -->"
+README_B1_START = "<!-- BEGIN GENERATED B1 RESULTS -->"
+README_B1_END = "<!-- END GENERATED B1 RESULTS -->"
 
 RESULT_COLUMNS = (
     "table",
@@ -537,6 +539,13 @@ def _with_std(value: str, std: str, *, percent: bool = False) -> str:
     return rendered
 
 
+def _display_status(row: Mapping[str, str]) -> str:
+    """Render the one explicit training-pending state without changing source data."""
+    if row["status"] == "pending" and "training — pending" in row["comment"]:
+        return "training — pending"
+    return row["status"]
+
+
 def render_results_markdown(bundle: AggregateBundle) -> str:
     """Render the public results page from the same rows consumed by the site."""
     lines = [
@@ -574,7 +583,7 @@ def render_results_markdown(bundle: AggregateBundle) -> str:
                 values = (
                     _markdown(row["approach"]),
                     _markdown(row["group"]),
-                    row["status"],
+                    _display_status(row),
                     row["seeds_completed"],
                     _with_std(row["mc"], row["mc_seed_std"], percent=True),
                     _with_std(row["hr"], row["hr_seed_std"], percent=True),
@@ -598,7 +607,7 @@ def render_results_markdown(bundle: AggregateBundle) -> str:
                     _markdown(row["approach"]),
                     _markdown(row["group"]),
                     _markdown(row["family"]),
-                    row["status"],
+                    _display_status(row),
                     row["seeds_completed"],
                     _with_std(row["dice"], row["dice_seed_std"], percent=True),
                     _with_std(row["jaccard"], row["jaccard_seed_std"], percent=True),
@@ -639,20 +648,28 @@ def render_results_markdown(bundle: AggregateBundle) -> str:
             )
             + " |"
         )
+    completed = sum(row["status"] == "complete" for row in bundle.results)
+    pending = sum(row["status"] == "pending" for row in bundle.results)
+    factual = (
+        f"This v1.0 provisional snapshot contains {completed} completed aggregate rows "
+        f"and {pending} pending rows. Completed values are published exactly as supplied "
+        "by the authenticated bundle; missing values are not inferred. The v1.1 refresh "
+        "will use the next authenticated aggregate bundle."
+        if pending
+        else f"All {completed} aggregate rows in this snapshot are complete."
+    )
     lines.extend(
         [
             "",
             "## Figures",
             "",
             "The public figure set is regenerated only from the same aggregate rows. "
-            "Until complete aggregates are imported, the Dice distribution, runtime "
-            "trade-off, examiner-value, and exemplar-device plots remain **pending**.",
+            "Plots whose required aggregates are incomplete remain **pending**.",
             "No qualitative fingerprint imagery is published.",
             "",
             "## Factual reading",
             "",
-            "Result-dependent statements remain **pending**. The release process does "
-            "not publish a headline claim from partial rows.",
+            factual,
             "",
             "",
             "Source digests:",
@@ -676,8 +693,8 @@ def render_readme_headline(rows: Sequence[Mapping[str, str]]) -> str:
     ]
     lines = [
         README_RESULTS_START,
-        "| Family | Approach | Dice | Jaccard | MDR | FDR | Seeds | Params (M) | ms/img (device) |",
-        "|---|---|---:|---:|---:|---:|---:|---:|---:|",
+        "| Family | Approach | Status | Dice | Jaccard | MDR | FDR | Seeds | Params (M) | ms/img (device) |",
+        "|---|---|---|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in table_rows:
         runtime = _with_std(row["ms_per_img"], row["ms_per_img_seed_std"])
@@ -689,6 +706,7 @@ def render_readme_headline(rows: Sequence[Mapping[str, str]]) -> str:
                 (
                     _markdown(row["family"]),
                     _markdown(row["approach"]),
+                    _display_status(row),
                     _with_std(row["dice"], row["dice_seed_std"], percent=True),
                     _with_std(row["jaccard"], row["jaccard_seed_std"], percent=True),
                     _with_std(row["mdr"], row["mdr_seed_std"], percent=True),
@@ -704,13 +722,55 @@ def render_readme_headline(rows: Sequence[Mapping[str, str]]) -> str:
     return "\n".join(lines)
 
 
+def render_readme_b1(rows: Sequence[Mapping[str, str]]) -> str:
+    """Render the provisional Table B1 rows without treating its hull as full GT."""
+    table_rows = [
+        row
+        for row in rows
+        if row["table"] == "B1" and row["view"] == "overall" and row["group"] == "overall"
+    ]
+    lines = [
+        README_B1_START,
+        "| Approach | Status | MC | HR | PAR | OHF | Seeds | Params (M) | ms/img (device) |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in table_rows:
+        runtime = _with_std(row["ms_per_img"], row["ms_per_img_seed_std"])
+        if row["device"]:
+            runtime += f" ({row['device']})"
+        lines.append(
+            "| "
+            + " | ".join(
+                (
+                    _markdown(row["approach"]),
+                    _display_status(row),
+                    _with_std(row["mc"], row["mc_seed_std"], percent=True),
+                    _with_std(row["hr"], row["hr_seed_std"], percent=True),
+                    _with_std(row["par"], row["par_seed_std"]),
+                    _with_std(row["ohf"], row["ohf_seed_std"], percent=True),
+                    row["seeds_completed"],
+                    _with_std(row["params_m"], row["params_m_seed_std"]),
+                    runtime,
+                )
+            )
+            + " |"
+        )
+    lines.append(README_B1_END)
+    return "\n".join(lines)
+
+
 def render_readme(readme: str, rows: Sequence[Mapping[str, str]]) -> str:
     """Replace only the marker-bound README table, refusing ambiguous input."""
     if readme.count(README_RESULTS_START) != 1 or readme.count(README_RESULTS_END) != 1:
         raise AggregateImportError("README generated-result markers are missing or duplicated")
     start = readme.index(README_RESULTS_START)
     end = readme.index(README_RESULTS_END, start) + len(README_RESULTS_END)
-    return readme[:start] + render_readme_headline(rows) + readme[end:]
+    rendered = readme[:start] + render_readme_headline(rows) + readme[end:]
+    if rendered.count(README_B1_START) != 1 or rendered.count(README_B1_END) != 1:
+        raise AggregateImportError("README generated-B1 markers are missing or duplicated")
+    b1_start = rendered.index(README_B1_START)
+    b1_end = rendered.index(README_B1_END, b1_start) + len(README_B1_END)
+    return rendered[:b1_start] + render_readme_b1(rows) + rendered[b1_end:]
 
 
 def _load_module(name: str, path: Path) -> ModuleType:

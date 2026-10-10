@@ -186,7 +186,8 @@ def test_apply_installs_only_validated_rows_and_rebuilt_outputs(tmp_path: Path) 
     assert "75.00% ± 1.00%" in documentation
     assert "Synthetic aggregate table" in documentation
     readme = (root / "README.md").read_text(encoding="utf-8")
-    assert "| Synthetic | Synthetic method | 75.00% ± 1.00% | 60.00% ± 2.00% |" in readme
+    assert "| Synthetic | Synthetic method | complete | 75.00% ± 1.00% | 60.00% ± 2.00% |" in readme
+    assert "<!-- BEGIN GENERATED B1 RESULTS -->" in readme
     site = (root / "site" / "index.html").read_text(encoding="utf-8")
     assert '"dice":"0.75"' in site
     assert '"dice_seed_std":"0.01"' in site

@@ -13,8 +13,11 @@ independent review. They are never attached to the public repository or site.
 
 ## Why are some result cells marked pending?
 
-The release is fail-closed: partial test values are not promoted to headline
-results before the preregistered seed-zero completion gate passes.
+The v1.0 release is a clearly labelled provisional aggregate snapshot. A
+pending cell means that the frozen training or locked scoring transaction has
+not completed. It is left blank rather than estimated from validation output,
+another seed, or another model. The v1.1 refresh will be generated from the
+next authenticated aggregate bundle.
 
 ## Are the browser-demo masks benchmark results?
 

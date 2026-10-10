@@ -2,16 +2,16 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-2563eb.svg)](LICENSE)
 [![CI](https://github.com/Udiation/latent-fingerprint-segmentation-benchmark/actions/workflows/ci.yml/badge.svg)](https://github.com/Udiation/latent-fingerprint-segmentation-benchmark/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/badge/release-pending-f59e0b.svg)](CHANGELOG.md)
+[![Release](https://img.shields.io/badge/release-v1.0_provisional-f59e0b.svg)](CHANGELOG.md)
 [![DOI](https://img.shields.io/badge/DOI-pending-64748b.svg)](#citation)
 
 A reproducible, subject-disjoint comparison of classical, patch-based,
 encoder–decoder, transformer, and released fingerprint foreground segmenters.
 
-> **Release status — results pending.** The public repository is prepared, but
-> the headline metrics remain intentionally blank until every Fig. 2 method
-> has a frozen seed-zero test score or a documented N/A outcome. Partial test
-> values are not published as final results.
+> **Release status — v1.0 provisional snapshot.** Authenticated aggregate
+> results are published where available. Any row marked `pending` is incomplete
+> and is never inferred from validation metrics or another seed. A v1.1 update
+> will regenerate the tables and website when the remaining frozen run finishes.
 
 ## TL;DR
 
@@ -22,35 +22,68 @@ encoder–decoder, transformer, and released fingerprint foreground segmenters.
 - Subjects are disjoint across train, validation, and test. Learning rates,
   stopping epochs, thresholds, and post-processing are selected on validation
   data only; the test transaction is single-use for each frozen model.
-- **Headline finding:** pending the preregistered seed-zero completion gate.
+- **Headline status:** this provisional snapshot reports completed aggregate
+  rows and labels unfinished rows explicitly; no claim is made from a pending row.
 
 ## Headline results
 
-Table A values are generated from `results/public_results.csv`; this placeholder
-contains no partial result and will be replaced atomically after the gate.
+Table A values are generated from `results/public_results.csv`. Completed cells
+come from the authenticated aggregate snapshot; pending cells are intentionally
+blank and will be replaced atomically by the v1.1 aggregate update.
 
 <!-- BEGIN GENERATED HEADLINE RESULTS -->
-| Family | Approach | Dice | Jaccard | MDR | FDR | Seeds | Params (M) | ms/img (device) |
-|---|---|---:|---:|---:|---:|---:|---:|---:|
-| Classical | GMFS (default) | pending | pending | pending | pending | 1 | pending | pending |
-| Classical | GMFS (val-tuned) | pending | pending | pending | pending | 1 | pending | pending |
-| Classical | SVM (Nyström RBF) | pending | pending | pending | pending | 3 | pending | pending |
-| Classical | Random forest | pending | pending | pending | pending | 3 | pending | pending |
-| Classical | Weighted ELM | pending | pending | pending | pending | 3 | pending | pending |
-| Patch CNN | CNN + stacked AE | pending | pending | pending | pending | 0 | pending | pending |
-| Patch CNN | AlexNet | pending | pending | pending | pending | 0 | pending | pending |
-| Patch CNN | LeNet | pending | pending | pending | pending | 0 | pending | pending |
-| Encoder–decoder | U-Net | pending | pending | pending | pending | 1 | pending | pending |
-| Encoder–decoder | UNet++ | pending | pending | pending | pending | 0 | pending | pending |
-| Encoder–decoder | DRUnet | pending | pending | pending | pending | 0 | pending | pending |
-| Encoder–decoder | RUnet (no alignment) | pending | pending | pending | pending | 0 | pending | pending |
-| Transformer | SegFormer-B2 (substitute†) | pending | pending | pending | pending | 0 | pending | pending |
-| Pretrained | SUFS (zero-shot) | pending | pending | pending | pending | 1 | pending | pending |
-| Pretrained | SUFS (fine-tuned) | pending | pending | pending | pending | 3 | pending | pending |
-| Pretrained | FingerNet (pretrained) | pending | pending | pending | pending | 1 | pending | pending |
-| Reference | All background | pending | pending | pending | pending | 1 | pending | pending |
-| Reference | All foreground | pending | pending | pending | pending | 1 | pending | pending |
+| Family | Approach | Status | Dice | Jaccard | MDR | FDR | Seeds | Params (M) | ms/img (device) |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Classical | GMFS (default) | complete | 75.91% | 62.61% | 25.06% | 43.72% | 1 | 0.00 | 15.62 (CPU) |
+| Classical | GMFS (val-tuned) | complete | 79.58% | 67.19% | 15.56% | 60.93% | 1 | 0.00 | 15.48 (CPU) |
+| Pretrained | SUFS (zero-shot) | complete | 74.95% | 61.70% | 27.00% | 39.13% | 1 | 7.08 | 21.22 (GPU) |
+| Pretrained | SUFS (fine-tuned) | complete | 81.85% ± 0.72% | 70.91% ± 0.76% | 7.71% ± 1.57% | 74.34% ± 10.31% | 3 | 7.08 ± 0.00 | 26.17 ± 0.14 (GPU) |
+| Pretrained | FingerNet (pretrained) | complete | 58.93% | 46.45% | 49.94% | 11.54% | 1 | 4.71 | 35.51 (GPU) |
+| Classical | SVM (Nyström RBF) | complete | 75.85% ± 0.05% | 62.26% ± 0.07% | 27.91% ± 0.07% | 35.35% ± 0.15% | 3 | 1.01 ± 0.00 | 41.57 ± 0.32 (CPU) |
+| Classical | Random forest | complete | 76.82% ± 0.04% | 63.40% ± 0.06% | 26.13% ± 0.09% | 37.35% ± 0.15% | 3 | 52.70 ± 0.41 | 58.32 ± 1.03 (CPU) |
+| Classical | Weighted ELM | complete | 75.27% ± 0.19% | 61.57% ± 0.20% | 28.70% ± 0.22% | 35.10% ± 0.07% | 3 | 0.01 ± 0.00 | 32.28 ± 0.41 (CPU) |
+| Encoder-decoder | U-Net | complete | 79.50% ± 1.18% | 68.21% ± 0.96% | 20.95% ± 1.68% | 32.78% ± 1.94% | 3 | 7.24 ± 0.00 | 29.57 ± 2.46 (GPU) |
+| Encoder-decoder | UNet++ | complete | 78.22% ± 0.58% | 67.49% ± 0.90% | 21.92% ± 3.24% | 33.21% ± 9.46% | 3 | 9.16 ± 0.00 | 42.36 ± 12.72 (GPU) |
+| Encoder-decoder | DRUnet | complete | 84.85% ± 0.57% | 74.39% ± 0.83% | 5.17% ± 1.45% | 64.75% ± 9.92% | 3 | 8.38 ± 0.00 | 33.40 ± 4.96 (GPU) |
+| Encoder-decoder | RUnet (no alignment) | complete | 84.46% ± 0.33% | 73.97% ± 0.53% | 4.25% ± 1.74% | 70.20% ± 7.11% | 3 | 8.38 ± 0.00 | 34.03 ± 7.51 (GPU) |
+| Patch CNN | LeNet | complete | 84.93% ± 0.18% | 74.46% ± 0.27% | 7.00% ± 0.83% | 58.00% ± 2.42% | 3 | 0.06 ± 0.00 | 16.76 ± 3.40 (GPU) |
+| Patch CNN | AlexNet | complete | 86.46% ± 0.02% | 76.62% ± 0.03% | 8.68% ± 0.14% | 41.73% ± 0.40% | 3 | 2.91 ± 0.00 | 19.22 ± 3.48 (GPU) |
+| Patch CNN | CNN + stacked AE | complete | 83.97% ± 0.07% | 73.08% ± 0.07% | 6.32% ± 0.86% | 69.41% ± 3.04% | 3 | 0.16 ± 0.00 | 19.44 ± 3.79 (GPU) |
+| Transformer | SegFormer-B2 (substitute†) | training — pending | 85.19% ± 2.59% | 75.42% ± 3.61% | 5.08% ± 3.39% | 64.65% ± 29.31% | 2 | 27.34 ± 0.00 | 33.59 ± 3.88 (GPU) |
+| Reference | All background | complete | 0.00% | 0.00% | 100.00% | 0.00% | 1 | 0.00 | pending (CPU) |
+| Reference | All foreground | complete | 82.98% | 71.84% | 0.00% | 100.00% | 1 | 0.00 | pending (CPU) |
 <!-- END GENERATED HEADLINE RESULTS -->
+
+### Table 4 — SD302-Exemplar live-scan
+
+This table uses expert-minutiae hulls as a lower-bound reference, so Dice is
+not reported. Only reference-verified aggregate rows contain values; every
+unscored cross-domain row remains explicitly pending.
+
+<!-- BEGIN GENERATED B1 RESULTS -->
+| Approach | Status | MC | HR | PAR | OHF | Seeds | Params (M) | ms/img (device) |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| GMFS (default) | complete | 99.62% | 99.41% | 1.45 | 27.83% | 1 | 0.00 | 28.40 (CPU) |
+| GMFS (val-tuned) | pending | pending | pending | pending | pending | 0 | pending | pending |
+| SUFS (zero-shot) | complete | 99.90% | 99.77% | 1.51 | 30.32% | 1 | 7.08 | 1142.40 (CPU) |
+| SUFS (fine-tuned) | pending | pending | pending | pending | pending | 0 | pending | pending |
+| FingerNet (pretrained) | pending | pending | pending | pending | pending | 0 | pending | pending |
+| SVM (Nyström RBF) | pending | pending | pending | pending | pending | 0 | pending | pending |
+| Random forest | pending | pending | pending | pending | pending | 0 | pending | pending |
+| Weighted ELM | pending | pending | pending | pending | pending | 0 | pending | pending |
+| U-Net | pending | pending | pending | pending | pending | 0 | pending | pending |
+| UNet++ | pending | pending | pending | pending | pending | 0 | pending | pending |
+| DRUnet | pending | pending | pending | pending | pending | 0 | pending | pending |
+| RUnet (no alignment) | pending | pending | pending | pending | pending | 0 | pending | pending |
+| LeNet | pending | pending | pending | pending | pending | 0 | pending | pending |
+| AlexNet | pending | pending | pending | pending | pending | 0 | pending | pending |
+| CNN + stacked AE | pending | pending | pending | pending | pending | 0 | pending | pending |
+| SegFormer-B2 (substitute†) | pending | pending | pending | pending | pending | 0 | pending | pending |
+| RA-RUnet (aligned) | pending | pending | pending | pending | pending | 0 | pending | pending |
+| All background | complete | 0.00% | 0.00% | 0.00 | 0.00% | 1 | pending | pending |
+| All foreground | complete | 100.00% | 100.00% | 4.29 | 73.23% | 1 | pending | pending |
+| Hull as prediction | complete | 100.00% | 100.00% | 1.00 | 0.00% | 1 | pending | pending |
+<!-- END GENERATED B1 RESULTS -->
 
 [Full result schema](results/README.md) · [Protocol](docs/PROTOCOL.md) ·
 [Limitations](docs/LIMITATIONS.md)

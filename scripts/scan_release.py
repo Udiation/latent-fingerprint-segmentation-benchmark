@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 from pathlib import Path
@@ -35,6 +36,16 @@ TEXT_SUFFIXES = {
     ".cff", ".html", ".css", ".js", ".svg", ".sh", ".ipynb",
 }
 ALLOWED_NON_TEXT_NAMES = {"LICENSE", ".gitignore"}
+PROVISIONAL_RECEIPT_KIND = "provisional_public_bundle_receipt_v1"
+PROVISIONAL_OUTPUTS = ("public_results.csv", "statistics.csv", "table_status.csv")
+PROVISIONAL_B1_COMPLETE = {
+    "all_background", "all_foreground", "gmfs_default", "hull_as_prediction", "sufs_zero",
+}
+PROVISIONAL_B1_PENDING = {
+    "alexnet", "cnn_ae", "drunet", "fingernet", "gmfs_tuned", "lenet",
+    "r_unet", "ra_runet_aligned", "rf", "segformer_b2", "sufs_ft", "svm",
+    "unet", "unetpp", "welm",
+}
 _OPAQUE_TOKEN = re.compile(
     r"(?<![A-Za-z0-9_-])[A-Za-z0-9_-]{25,80}(?![A-Za-z0-9_-])"
 )
@@ -288,6 +299,95 @@ def verify_imported_release(root: Path, package: Path, expected_receipt_sha256: 
     return approved
 
 
+def verify_provisional_release(root: Path, expected_receipt_sha256: str) -> dict[str, object]:
+    """Verify the separately authorised partial release without weakening final.
+
+    The independently supplied digest binds a tracked receipt.  That receipt in
+    turn binds every public aggregate file and the exact pending universes.  A
+    provisional scan never treats validation output as a missing test result and
+    never approves aggregate figures.
+    """
+    if not re.fullmatch(r"[0-9a-f]{64}", expected_receipt_sha256):
+        raise Stage5ImportError("provisional receipt digest must be lowercase SHA-256")
+    receipt_path = root / "results" / "provisional_release_receipt.json"
+    receipt_bytes = _regular_bytes(receipt_path, "provisional release receipt")
+    if _sha256(receipt_bytes) != expected_receipt_sha256:
+        raise Stage5ImportError("provisional release receipt differs from independently pinned digest")
+    try:
+        receipt = json.loads(receipt_bytes)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise Stage5ImportError("provisional release receipt is not valid JSON") from exc
+    if (
+        not isinstance(receipt, dict)
+        or receipt.get("schema_version") != 1
+        or receipt.get("kind") != PROVISIONAL_RECEIPT_KIND
+        or receipt.get("status") != "PASS"
+        or receipt.get("contains_per_image_rows") is not False
+        or receipt.get("contains_biometric_media") is not False
+    ):
+        raise Stage5ImportError("provisional release receipt contract mismatch")
+    if receipt.get("pending_table_a_methods") != ["segformer_b2"]:
+        raise Stage5ImportError("provisional Dataset-1 pending universe changed")
+    if receipt.get("complete_b1_rows") != sorted(PROVISIONAL_B1_COMPLETE):
+        raise Stage5ImportError("provisional B1 complete universe changed")
+    if receipt.get("pending_b1_rows") != sorted(PROVISIONAL_B1_PENDING):
+        raise Stage5ImportError("provisional B1 pending universe changed")
+
+    output_files = receipt.get("output_files")
+    if not isinstance(output_files, dict) or set(output_files) != set(PROVISIONAL_OUTPUTS):
+        raise Stage5ImportError("provisional output inventory changed")
+    for name in PROVISIONAL_OUTPUTS:
+        path = root / "results" / name
+        if output_files[name] != _sha256(_regular_bytes(path, f"provisional {name}")):
+            raise Stage5ImportError(f"provisional output is not receipt-bound: {name}")
+    manifest = {
+        "schema_version": 1,
+        "kind": "stage4_public_aggregate_bundle",
+        "files": output_files,
+    }
+    manifest_bytes = (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode()
+    if receipt.get("output_manifest_sha256") != _sha256(manifest_bytes):
+        raise Stage5ImportError("provisional aggregate manifest identity changed")
+
+    with (root / "results" / "public_results.csv").open(
+        newline="", encoding="utf-8"
+    ) as handle:
+        rows = list(csv.DictReader(handle))
+    forbidden = {"image_id", "subject_id", "image_path", "mask_path", "filename"}
+    if not rows or forbidden.intersection(rows[0]):
+        raise Stage5ImportError("provisional results contain per-image identifiers")
+    table_a = [
+        row for row in rows
+        if row.get("table") == "A" and row.get("view") == "overall"
+        and row.get("group") == "overall"
+    ]
+    pending_a = [row for row in table_a if row.get("status") == "pending"]
+    if (
+        len(table_a) != 18
+        or len(pending_a) != 1
+        or pending_a[0].get("method") != "segformer_b2"
+        or pending_a[0].get("seeds_completed") != "2"
+        or "training — pending" not in pending_a[0].get("comment", "")
+    ):
+        raise Stage5ImportError("provisional Dataset-1 row state differs from 2/3 contract")
+    b1 = [
+        row for row in rows
+        if row.get("table") == "B1" and row.get("view") == "overall"
+        and row.get("group") == "overall"
+    ]
+    b1_complete = {row.get("method") for row in b1 if row.get("status") == "complete"}
+    b1_pending = {row.get("method") for row in b1 if row.get("status") == "pending"}
+    if b1_complete != PROVISIONAL_B1_COMPLETE or b1_pending != PROVISIONAL_B1_PENDING:
+        raise Stage5ImportError("provisional B1 result rows differ from authenticated universes")
+    if any(
+        row.get(key, "")
+        for row in b1
+        for key in ("accuracy", "error_rate", "dice", "jaccard", "miou", "mdr", "fdr")
+    ):
+        raise Stage5ImportError("provisional B1 rows incorrectly contain full-mask metrics")
+    return receipt
+
+
 def git_tree_status(root: Path) -> tuple[bool | None, str]:
     """Return clean state and immutable HEAD; ``None`` means not a Git tree."""
     probe = subprocess.run(
@@ -315,10 +415,12 @@ def main() -> None:
         help="optional JSON report; final-phase reports must be outside the repository",
     )
     parser.add_argument(
-        "--phase", choices=("working", "final"), default="working",
+        "--phase", choices=("working", "final", "provisional-final"), default="working",
         help=(
             "working permits the deliberate dirty tree created by a controlled import; "
-            "final requires an unchanged committed tree and an external report path"
+            "final requires the complete Stage-5 package; provisional-final is the "
+            "separate receipt-bound partial-release path. Both final modes require an "
+            "unchanged committed tree and an external report path"
         ),
     )
     parser.add_argument(
@@ -334,10 +436,14 @@ def main() -> None:
         "--expected-stage5-receipt-sha256",
         help="independently supplied SHA-256 of the canonical package receipt",
     )
+    parser.add_argument(
+        "--expected-provisional-receipt-sha256",
+        help="independently supplied SHA-256 of the tracked provisional release receipt",
+    )
     args = parser.parse_args()
     errors: list[str] = []
     clean_at_start, head = git_tree_status(ROOT)
-    if args.phase == "final":
+    if args.phase in {"final", "provisional-final"}:
         try:
             (args.out or ROOT / "release_scan.json").resolve().relative_to(ROOT.resolve())
         except ValueError:
@@ -355,18 +461,36 @@ def main() -> None:
         provenance_args = bool(args.stage5_package) and bool(args.expected_stage5_receipt_sha256)
         if bool(args.stage5_package) != bool(args.expected_stage5_receipt_sha256):
             raise Stage5ImportError("both Stage-5 provenance arguments are required together")
-        if args.phase == "final" and not complete_figures:
-            raise Stage5ImportError("final publication scan requires imported aggregate figures")
-        if complete_figures:
-            if not provenance_args:
-                raise Stage5ImportError("imported figures require independent Stage-5 source verification")
-            approved_figures = verify_imported_release(
-                ROOT, args.stage5_package, args.expected_stage5_receipt_sha256,
+        if args.phase == "provisional-final":
+            if complete_figures or provenance_args:
+                raise Stage5ImportError(
+                    "provisional-final cannot claim the complete Stage-5 figure package"
+                )
+            if not args.expected_provisional_receipt_sha256:
+                raise Stage5ImportError(
+                    "provisional-final requires an independently pinned provisional receipt"
+                )
+            provisional_receipt = verify_provisional_release(
+                ROOT, args.expected_provisional_receipt_sha256,
             )
-        else:
-            if provenance_args:
-                raise Stage5ImportError("pending release cannot claim a Stage-5 publication source")
             approved_figures = validate_figure_manifest(ROOT)
+        else:
+            if args.expected_provisional_receipt_sha256:
+                raise Stage5ImportError(
+                    "the normal final/working path cannot claim provisional provenance"
+                )
+            if args.phase == "final" and not complete_figures:
+                raise Stage5ImportError("final publication scan requires imported aggregate figures")
+            if complete_figures:
+                if not provenance_args:
+                    raise Stage5ImportError("imported figures require independent Stage-5 source verification")
+                approved_figures = verify_imported_release(
+                    ROOT, args.stage5_package, args.expected_stage5_receipt_sha256,
+                )
+            else:
+                if provenance_args:
+                    raise Stage5ImportError("pending release cannot claim a Stage-5 publication source")
+                approved_figures = validate_figure_manifest(ROOT)
     except (OSError, FigureManifestError, json.JSONDecodeError) as exc:
         approved_figures = {}
         errors.append(f"aggregate figure manifest failed validation: {type(exc).__name__}")
@@ -451,7 +575,9 @@ def main() -> None:
         ),
     )
     clean_at_end, end_head = git_tree_status(ROOT)
-    if args.phase == "final" and (clean_at_end is not True or end_head != head):
+    if args.phase in {"final", "provisional-final"} and (
+        clean_at_end is not True or end_head != head
+    ):
         errors.append("Git worktree or HEAD changed during the final scan")
     report = {
         "schema_version": 1,
@@ -466,6 +592,14 @@ def main() -> None:
         "stage5_source_receipt_sha256": (
             args.expected_stage5_receipt_sha256 if approved_figures else None
         ),
+        "provisional_source_verified": bool(
+            args.phase == "provisional-final" and 'provisional_receipt' in locals()
+        ),
+        "provisional_receipt_sha256": (
+            args.expected_provisional_receipt_sha256
+            if args.phase == "provisional-final" and 'provisional_receipt' in locals()
+            else None
+        ),
         "checks": [
             "no biometric filename patterns outside the naming explanation",
             "no private absolute paths, cloud-drive references, or IP addresses",
@@ -473,7 +607,11 @@ def main() -> None:
             "no trained-weight or data-array artifacts",
             "all raster assets are receipt-bound synthetic images or manifest-bound aggregate plots",
             "all aggregate PDFs are manifest-bound and source-receipt-bound",
-            "final aggregate outputs are re-derived from the independently pinned Stage-5 package",
+            (
+                "provisional aggregate outputs are bound to an independently pinned receipt"
+                if args.phase == "provisional-final"
+                else "final aggregate outputs are re-derived from the independently pinned Stage-5 package"
+            ),
             "synthetic method outputs pass provenance validation and release completeness",
             "no unapproved binary file types",
             "no file exceeds 10 MB",

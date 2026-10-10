@@ -1,0 +1,50 @@
+{
+  "complete_b1_rows": [
+    "all_background",
+    "all_foreground",
+    "gmfs_default",
+    "hull_as_prediction",
+    "sufs_zero"
+  ],
+  "contains_biometric_media": false,
+  "contains_per_image_rows": false,
+  "kind": "provisional_public_bundle_receipt_v1",
+  "output_files": {
+    "public_results.csv": "c90b0ab47ce7cb0de032c19ae38cb57cfea48988063a0acd161839a9e77e75bc",
+    "statistics.csv": "f3aada459b4c470d557ea1e20df0ed1cde78c2b32842f709f5963610b1b22db6",
+    "table_status.csv": "9901925d9be1d19f6e6587004314d2b282a043db9399d00c6cd6434c822c7243"
+  },
+  "output_manifest_sha256": "362930e1829127d8063c5f1608fdd230f173bc6592b6db6c8d4ea357868b1cdc",
+  "pending_b1_rows": [
+    "alexnet",
+    "cnn_ae",
+    "drunet",
+    "fingernet",
+    "gmfs_tuned",
+    "lenet",
+    "r_unet",
+    "ra_runet_aligned",
+    "rf",
+    "segformer_b2",
+    "sufs_ft",
+    "svm",
+    "unet",
+    "unetpp",
+    "welm"
+  ],
+  "pending_table_a_methods": [
+    "segformer_b2"
+  ],
+  "schema_version": 1,
+  "source_b1_receipt_sha256": "803bdfc067895aa257325ab70b03e8392df31334f45a90ec872873a544bd378c",
+  "source_b1_table_sha256": "fefc07603ea633c8bdb9541fc91a875e6497e44680fb085af1fc988f657f5dc3",
+  "source_snapshot_outputs_sha256": "5e19560481c73e08273c6b8f3fba19d6b864d581ced1c2b9d68fba0c6f2bc7fa",
+  "source_snapshot_receipt_sha256": "6b25f681524c09a2c4977a2eaa82cfa2a11094d3598119796ed4d0ce792b017c",
+  "status": "PASS",
+  "transformations": [
+    "preserved authenticated Dataset-1 aggregate values",
+    "labelled pending SegFormer rows as training pending",
+    "converted reference-verified B1 percentages to fractions",
+    "added explicit pending rows for unscored B1 methods"
+  ]
+}

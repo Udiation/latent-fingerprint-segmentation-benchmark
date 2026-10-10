@@ -618,3 +618,13 @@ entries declare their target evaluator explicitly because its cross-domain
 directions have different available ground truth. The dry-run form validates
 paths, artifact hashes, split syntax, target resolution and dispatch while
 printing the exact commands; it does not open test images or write results.
+
+## 13. Provisional-publication amendment (2026-10-10)
+
+The v1.0 public release may contain a receipt-authenticated aggregate snapshot
+before every planned seed is complete. This changes publication timing only;
+it does not change model selection, threshold selection, test scoring, metrics,
+or statistics. Completed test aggregates are preserved exactly, unfinished
+rows are labelled `pending` with their completed-seed count, and no missing
+value is inferred. The same controlled aggregate importer regenerates the
+tables and website for v1.1 after the remaining frozen work completes.

@@ -155,12 +155,17 @@ def _converter_dependencies(root: Path = ROOT) -> dict[str, str]:
         data = path.read_bytes()
         if relative == "README.md":
             text = _decode_text(data, "README publication template")
-            start, end = UPDATE.README_RESULTS_START, UPDATE.README_RESULTS_END
-            if text.count(start) != 1 or text.count(end) != 1:
-                raise Stage5ImportError("README publication template markers changed")
-            left = text.index(start) + len(start)
-            right = text.index(end, left)
-            data = (text[:left] + "\n<generated-results/>\n" + text[right:]).encode()
+            blocks = (
+                (UPDATE.README_RESULTS_START, UPDATE.README_RESULTS_END, "results"),
+                (UPDATE.README_B1_START, UPDATE.README_B1_END, "b1-results"),
+            )
+            for start, end, label in blocks:
+                if text.count(start) != 1 or text.count(end) != 1:
+                    raise Stage5ImportError("README publication template markers changed")
+                left = text.index(start) + len(start)
+                right = text.index(end, left)
+                text = text[:left] + f"\n<generated-{label}/>\n" + text[right:]
+            data = text.encode()
         dependencies[relative] = _sha256(data)
     return dependencies
 

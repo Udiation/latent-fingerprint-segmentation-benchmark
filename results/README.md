@@ -1,8 +1,11 @@
 # Public aggregate results
 
 `public_results.csv` is the only metric source consumed by the public website.
-Rows remain `pending` with empty metrics until the seed-zero completion gate.
-Final imports must be aggregate by method and contain no sample identifier.
+The v1.0 provisional snapshot publishes authenticated aggregate metrics for
+completed rows and keeps incomplete rows `pending`; it never infers a missing
+test metric. Final imports must be aggregate by method and contain no sample
+identifier. The same controlled import will produce v1.1 when the remaining
+frozen run completes.
 
 `table_status.csv` controls which tabs can be rendered. `statistics.csv` holds
 aggregate confidence intervals and corrected tests only. The build and number

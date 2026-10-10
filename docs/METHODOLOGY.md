@@ -1,7 +1,8 @@
 # Methodology
 
-> **Draft status:** protocol-complete; numerical results pending the seed-zero
-> completion gate. This document contains no partial test result.
+> **Release status:** protocol-complete; v1.0 is a provisional aggregate
+> snapshot. Completed rows contain authenticated test aggregates, while every
+> unfinished row is explicitly marked pending. No pending value is inferred.
 
 ## Study design
 
@@ -73,6 +74,6 @@ references and are excluded from method ranking.
 - Released SUFS and FingerNet models are zero-shot and were trained externally,
   not on the benchmark subjects.
 
-Final metric values and chosen hyperparameters will be inserted only from the
-aggregate release bundle after the seed-zero gate passes.
-
+Metric values and chosen hyperparameters enter this repository only through an
+authenticated aggregate release bundle. The v1.1 refresh will replace pending
+cells after the remaining frozen run and locked scoring transaction complete.

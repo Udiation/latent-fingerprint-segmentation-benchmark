@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.0 — 2026-10-10 (provisional aggregate snapshot)
+
+- Published the first public, aggregate-only benchmark snapshot.
+- Kept unfinished rows explicitly pending; no missing test metric is inferred
+  from validation output, another seed, or a related architecture.
+- Scheduled v1.1 as an automatic aggregate-table and website refresh after the
+  remaining frozen training and evaluation transaction completes.
+- Retained the public privacy boundary: no fingerprint image, mask, per-image
+  row, trained weight, or private identifier is distributed.
+
 ## Unreleased
 
 - Added a fail-closed, receipt/SHA-bound bridge from the canonical Stage-5

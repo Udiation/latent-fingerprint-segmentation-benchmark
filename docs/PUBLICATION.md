@@ -47,7 +47,24 @@ python scripts/scan_release.py --phase working \
 The working phase deliberately permits the controlled dirty tree. Review and
 commit exactly those outputs; do not edit a generated number or figure.
 
-## 3. Final clean-tree gates
+## 3. Provisional v1.0 clean-tree gate
+
+The separately authorised v1.0 snapshot uses a distinct final mode. Obtain the
+SHA-256 of the tracked `results/provisional_release_receipt.json` through an
+independent channel, commit the controlled aggregate import, then run:
+
+```bash
+python scripts/scan_release.py --phase provisional-final \
+  --expected-provisional-receipt-sha256 "$PROVISIONAL_RECEIPT_SHA256" \
+  --out /path/outside/the/repository/provisional-final-scan.json
+```
+
+This mode is fail-closed on the clean Git tree, receipt digest, output hashes,
+the single 2-of-3 SegFormer pending state, and the authenticated B1
+complete/pending universes. It does not approve figures or substitute for the
+complete Stage-5 final gate. Use the normal final mode below for v1.1.
+
+## 4. Final clean-tree gates
 
 ```bash
 python scripts/scan_release.py --phase final \

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "latent-fingerprint-segmentation-benchmark"
-version = "0.1.0.dev0"
+version = "1.0.0"
 description = "Reproducible benchmarking tools for latent fingerprint foreground segmentation"
 readme = "README.md"
 requires-python = ">=3.10"

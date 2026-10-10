@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use this benchmark, please cite the software release and the accompanying paper."
 title: "Latent Fingerprint Segmentation Benchmark"
 type: software
-version: 0.1.0-dev
-date-released: 2026-10-09
+version: 1.0.0
+date-released: 2026-10-10
 authors:
   - family-names: Narayan
     given-names: Udit
@@ -15,4 +15,3 @@ abstract: >-
   A subject-disjoint, validation-selected benchmark of fingerprint foreground
   segmentation methods on NIST Special Database 302. Licensed biometric data
   and trained weights are not distributed with the software.
-

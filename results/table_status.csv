@@ -1,7 +1,6 @@
 table,title,status,note
-A,SD302-Latent · examiner ROI,pending,Final aggregate metrics await seed-zero gate
-A_value,Examiner-value breakdown,pending,Generated after Table A finalisation
-A_prime,SD302-Latent · usable-ridge GT,pending,Uses the same frozen Table A predictions
-B1,SD302-Exemplar · minutiae-hull lower bound,pending,Reports MC HR PAR and OHF rather than Dice
-D,Cross-domain summary,pending,Generated after Dataset 2 evaluation
-
+A,"SD302-Latent, examiner ROI",pending,Missing methods or seeds remain explicitly pending.
+A_value,SD302-Latent by examiner value,pending,Missing methods or seeds remain explicitly pending.
+A_prime,"SD302-Latent, usable-ridge area",pending,Missing methods or seeds remain explicitly pending.
+B1,"SD302-Exemplar, minutiae-hull lower bound",pending,Two methods and three references are reference-verified; all other B1 rows remain pending.
+D,Cross-domain summary,pending,Not included in this Dataset-1 partial snapshot.
