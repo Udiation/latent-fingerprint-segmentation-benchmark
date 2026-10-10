@@ -18,7 +18,7 @@
   let activeMetric = "dice";
   let activeGroup = "all";
   let sortAscending = false;
-  const hullTables = new Set(["B1", "D"]);
+  const hullTables = new Set(["B1", "B_rolled", "B_plain", "D"]);
 
   const lowerIsBetter = new Set(["mdr", "fdr", "ohf", "ms_per_img"]);
   const htmlEscape = value => String(value).replace(
